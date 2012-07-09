@@ -18,7 +18,8 @@ body{
 	color:#000;
 	font-family: "flexyRegular";
 	font-size: 17px;
-	background: #fbfaf9;
+	background: #fbfaf9;	
+	color:#515151;
 }
 ul, ol{margin:0 0 0.5em 20px}
 table {border-collapse:collapse; empty-cells:show;}
@@ -39,6 +40,11 @@ header, nav, article, footer, section {
 }
 
 
+.pseudo-link{
+	display:inline-block;
+	border-bottom:1px dotted #515151;
+	line-height: 0.8;
+}
 
 #layout{
 	width:715px;
@@ -61,8 +67,9 @@ header, nav, article, footer, section {
 }
 	#auth span{
 		font-size:17px;
-		color:#515151;
 		border-bottom:1px dashed #515151;
+		line-height: 0.8;
+		display: inline-block;
 	}
 	#auth span.login{
 		margin-right:16px;
@@ -95,7 +102,12 @@ header, nav, article, footer, section {
 		line-height:28px;
 		height:24px;
 		padding:0 8px;
+		cursor:pointer;
 	}
+		.toolbar-button:hover{
+			color:#be7551;
+			border-color:#be7551;
+		}
 		.toolbar-button .icon{
 			background:url(../img/sprite.png) 100px 0 no-repeat;
 			display:inline-block;
@@ -119,6 +131,14 @@ header, nav, article, footer, section {
 	.level{
 		margin-right:40px;
 	}
+		.level > span{
+			display:inline-block;
+		}
+		.level-changer-toggler{
+			border-bottom:1px dashed #515151;
+			line-height: 0.8;
+			display: inline-block;
+		}
 	.pause{
 		margin-right:40px;
 	}
@@ -138,10 +158,10 @@ header, nav, article, footer, section {
 .brick{
 	font-size:21px;
 	display:inline-block;
-	width:141px;
+	width:139px;
 	height:37px;
-	padding:5px 0 0 0;
-	margin:0 0 2px 0;
+	line-height:38px;
+	margin:0 2px 2px 0;
 	border-radius:10px;
 	text-align:center;
 	vertical-align:top;
@@ -151,13 +171,11 @@ header, nav, article, footer, section {
 	.brick.en{
 		color:#be7551;
 	}
-	.brick.selected.ru{
+	.brick.selected.ru,
+	.brick.ru:hover{
 		border:1px solid #474747;
 	}
-	.brick.selected.en{
+	.brick.selected.en,
+	.brick.en:hover{
 		border:1px solid #be7551;
-	}
-	.brick span{
-		display:block;
-		font-size:16px;
 	}
