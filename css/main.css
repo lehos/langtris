@@ -151,13 +151,16 @@ header, nav, article, footer, section {
 	}
 
 #tris{
-	font-size:0;
 	padding-top:21px;
+	position:relative;
+	width:715px;
+	height:492px;
 }
 
 .brick{
+	position:absolute;
 	font-size:21px;
-	display:inline-block;
+	/*display:inline-block;*/
 	width:139px;
 	height:37px;
 	line-height:38px;
@@ -166,7 +169,7 @@ header, nav, article, footer, section {
 	text-align:center;
 	vertical-align:top;
 	cursor:pointer;
-	border:1px solid #fff;
+	border:1px solid transparent	;
 }
 	.brick.en{
 		color:#be7551;
