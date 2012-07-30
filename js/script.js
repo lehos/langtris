@@ -10,15 +10,15 @@ var Langtris = function(){
 		brick_w: 143,
 		brick_h: 41,
 
-		fall_speed: 5000,
-		fall_delay: 4000
+		fall_speed: 4000,
+		fall_delay: 100
 	};
 
 	var langs = ["en", "ru"];
 	var en_dic = ["city", "cucumber", "gloves", "learn", "man", "skin", "spoon", "swim", "razor", "watch"];
 	var ru_dic = ["город", "огурец", "перчатки", "учиться", "мужчина", "кожа", "ложка", "плавать", "бритва", "часы"];
 
-	var $tris = $("#tris");
+	var $wall = $("#tris");
 	var $brick_template = $("#template-brick");
 
 	var me = this;
@@ -36,7 +36,7 @@ var Langtris = function(){
 		var lang_dic = eval(lang + "_dic");
 
 //		выбираем слово
-		var word = lang_dic[random(0, lang_dic.length)];
+		var word = lang_dic[random(0, lang_dic.length - 1)];
 
 //		выбираю колонку, в которое будет падать слово
 		var column = random(0, config.map_column_count - 1);
@@ -61,20 +61,28 @@ var Langtris = function(){
 			bottom: config.brick_h * row
 		};
 
-		var elem_html = $brick_template.render({
+		var $elem = $($brick_template.render({
 			lang: lang,
 			word: word,
 			left: config.brick_w * column,
 			bottom: config.brick_h * row
-		});
+		}));
 
-		wall[column][row]
+		obj.dom_elem = $elem;
 
-		console.log(elem_html);
-		
-//		var row = wall[column];
-//		console.log(column, row);
-	}();
+		wall[column][row] = obj;
+
+		$wall.append($elem);
+
+		setTimeout(function(){
+			$elem.animate({bottom:"0px"}, config.fall_speed, function(){console.log("end");});
+		}, 100);
+	};
+
+	bricks_rain();
+	setInterval(function(){
+		bricks_rain()
+	}, config.fall_delay);
 
 //	//карта областей
 //	for (var i = 0; i < config.map_row_count; i++){
@@ -115,7 +123,7 @@ var Langtris = function(){
 	 * @config {int} [column] column number, 1-based
 	 */
 	var brick_fall = function(params){
-		var $elem = brick_create(params);
+		var $elem = brick_create(params.html);
 
 		$tris.append($elem);
 
