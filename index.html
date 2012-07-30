@@ -77,7 +77,10 @@
 	</div>
 
 	<script id="template-brick" type="text/x-jsrender">
-		<div class="brick {{>lang}}" style="left:{{>left}}px; bottom:{{>bottom}}px">{{>text}}</div>
+		<div class="brick {{>lang}}" data-lang="{{>lang}}" data-row="{{>row}}" data-column="{{>column}}"
+			 data-bottom="{{>bottom}}" style="left:{{>left}}px;">
+			{{>word}}
+		</div>
 	</script>
 </body>
 </html>

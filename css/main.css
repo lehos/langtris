@@ -155,21 +155,23 @@ header, nav, article, footer, section {
 	position:relative;
 	width:715px;
 	height:492px;
+	background:#eee;
+	overflow:hidden;
 }
 
 .brick{
-	position:absolute;
-	font-size:21px;
-	/*display:inline-block;*/
 	width:139px;
 	height:37px;
-	line-height:38px;
+	position:absolute;
+	bottom:492px;
 	margin:0 2px 2px 0;
+	border:1px solid transparent;
+	font-size:21px;
+	line-height:38px;
 	border-radius:10px;
 	text-align:center;
 	vertical-align:top;
 	cursor:pointer;
-	border:1px solid transparent	;
 }
 	.brick.en{
 		color:#be7551;
