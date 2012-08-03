@@ -5,9 +5,9 @@ function random(from, to){
 var Langtris = function(){
 	var config = {
 		map_row_count: 12,
-		map_column_count: 5,
+		map_column_count: 6,
 
-		brick_w: 143,
+		brick_w: 160,
 		brick_h: 41,
 
 		fall_speed: 1000,
@@ -70,7 +70,7 @@ var Langtris = function(){
 
 		this.elem = $($($brick_template.render(this)));
 
-		this.elem.click(function(){
+		this.elem.bind("click", function(){
 			if (!$(this).is(":animated")){
 				$(this).toggleClass("selected");
 			}

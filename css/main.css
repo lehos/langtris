@@ -47,7 +47,7 @@ header, nav, article, footer, section {
 }
 
 #layout{
-	width:715px;
+	width:962px;
 	margin:auto;
 	position:relative;
 }
@@ -157,14 +157,14 @@ header, nav, article, footer, section {
 #wall{
 	padding-top:21px;
 	position:relative;
-	width:715px;
+	width:100%;
 	height:482px;
 	overflow:hidden;
 }
 
 
 .brick{
-	width:139px;
+	width:160px;
 	height:37px;
 	position:absolute;
 	bottom:505px;
