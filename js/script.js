@@ -10,8 +10,8 @@ var Langtris = function(){
 		brick_w: 143,
 		brick_h: 41,
 
-		fall_speed: 4000,
-		fall_delay: 1000,
+		fall_speed: 1000,
+		fall_delay: 100,
 
 		initial_rows_fill: 5,
 
@@ -22,7 +22,7 @@ var Langtris = function(){
 	var en_dic = ["city", "cucumber", "gloves", "learn", "man", "skin", "spoon", "swim", "razor", "watch"];
 	var ru_dic = ["город", "огурец", "перчатки", "учиться", "мужчина", "кожа", "ложка", "плавать", "бритва", "часы"];
 
-	var $wall = $("#tris");
+	var $wall = $("#wall");
 	var $brick_template = $("#template-brick");
 
 	var me = this;

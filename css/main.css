@@ -150,14 +150,18 @@ header, nav, article, footer, section {
 		width:13px;
 	}
 
-#tris{
+#wall-wrap{
+	border-bottom:1px solid #515151;
+	padding-bottom:10px;
+}
+#wall{
 	padding-top:21px;
 	position:relative;
 	width:715px;
-	height:492px;
+	height:482px;
 	overflow:hidden;
-	border-bottom:1px solid #515151;
 }
+
 
 .brick{
 	width:139px;
