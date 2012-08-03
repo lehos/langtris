@@ -55,7 +55,6 @@ header, nav, article, footer, section {
 	border-bottom:1px solid #515151;
 	position:relative;
 	padding:40px 0 4px 0;
-	display:none;
 }
 #auth{
 	background-color:#f5ece8;
@@ -172,16 +171,19 @@ header, nav, article, footer, section {
 	border-radius:10px;
 	text-align:center;
 	vertical-align:top;
-	cursor:pointer;
+	cursor:default;
 }
+	.brick.stable{
+		cursor:pointer;
+	}
 	.brick.en{
 		color:#be7551;
 	}
-	.brick.selected.ru,
-	.brick.ru:hover{
+	.brick.stable.selected.ru,
+	.brick.stable.ru:hover{
 		border:1px solid #474747;
 	}
-	.brick.selected.en,
-	.brick.en:hover{
+	.brick.stable.selected.en,
+	.brick.stable.en:hover{
 		border:1px solid #be7551;
 	}

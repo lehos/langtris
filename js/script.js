@@ -9,12 +9,13 @@ var Langtris = function(){
 
 		brick_w: 143,
 		brick_h: 41,
-		brick_init_bottom: 432,
 
 		fall_speed: 4000,
 		fall_delay: 1000,
 
-		initial_rows_fill: 2
+		initial_rows_fill: 5,
+
+		bottom_init: 505
 	};
 
 	var langs = ["en", "ru"];
@@ -35,89 +36,83 @@ var Langtris = function(){
 
 	var brick = function(params){
 //		выбираем словарь
-		var lang = langs[random(0, 1)];
-		var lang_dic = eval(lang + "_dic");
+		this.lang = langs[random(0, 1)];
+		var lang_dic = eval(this.lang + "_dic");
 
 //		выбираем слово
-		var word = lang_dic[random(0, lang_dic.length - 1)];
+		this.word = lang_dic[random(0, lang_dic.length - 1)];
 
 //		выбираю колонку, в которое будет падать слово
-		var column;
-		if (params.column){
-			column = params.column;
+		if (params && params.column != undefined){
+			this.column = params.column;
 		} else {
-			column = random(0, config.map_column_count - 1);
+			this.column = random(0, config.map_column_count - 1);
 		}
 
 //		высчитываю пустое место (номер строки)
-		var row;
-		if (params.row) {
-			row = params.row
+		if (params && params.row) {
+			this.row = params.row
 		} else {
 //			если колонка есть (даже пустая)
-			if (wall[column]){
-				row = wall[column].length;
+			if (wall[this.column]){
+				this.row = wall[this.column].length;
 //			если же колонки нет
 			} else {
-				wall[column] = [];
-				row = 0;
+				wall[this.column] = [];
+				this.row = 0;
 			}
 		}
 
+		this.left = config.brick_w * this.column;
 
-		var obj = {
-			lang: lang,
-			word: word,
-			row: row,
-			column: column,
-			left: config.brick_w * column,
-			bottom_target: config.brick_h * row,
-			// todo вычислять динамически
-			bottom_init: config.brick_init_bottom
+		this.bottom_target = config.brick_h * this.row;
+		this.bottom_init = config.bottom_init;
+
+		this.elem = $($($brick_template.render(this)));
+
+		this.elem.click(function(){
+			if (!$(this).is(":animated")){
+				$(this).toggleClass("selected");
+			}
+		})
+
+		wall[this.column][this.row] = this;
+
+		$wall.append(this.elem);
+
+		this.init_show = function(){
+			this.elem.css({bottom: this.bottom_target + "px"}).addClass("stable");
 		};
 
-		obj.elem = $($($brick_template.render(obj)));
-
-		console.log(obj);
-		wall[column][row] = obj;
-
-		$wall.append(obj.elem);
-
-		obj.init_show = function(){
-			obj.elem.css({bottom: obj.bottom_target + "px"});
+		this.fall = function(){
+			this.elem.animate({bottom: this.bottom_target + "px"}, config.fall_speed, "linear", function(){
+				$(this).addClass("stable");
+			});
 		};
 
-//		obj.fall = function(){
-//			obj.elem.animate({bottom: obj.bottom_target + "px"}, config.fall_speed, "linear");
-//		};
-
-		return obj;
+		return this;
 	};
 
-	for (var i = 0; i < config.initial_rows_fill * config.map_row_count; i++){
+	for (var i = 0; i < config.initial_rows_fill; i++){
 		for (var j = 0; j < config.map_column_count; j++){
 			var b = new brick({
 				row: i,
 				column: j
 			});
+
 			b.init_show();
 		}
 	}
 
-//	var bricks_rain = function(){
-//		var b = new brick;
-//		b.init_show();
-//	};
-//
-//	bricks_rain();
-//
-//	setInterval(function(){
-//		bricks_rain()
-//	}, config.fall_delay);
+	var bricks_rain = function(){
+		var b = new brick;
+		b.fall();
+	};
 
 
-
-
+	setInterval(function(){
+		bricks_rain()
+	}, config.fall_delay);
 };
 
 $(document).ready(function(){
