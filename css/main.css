@@ -55,6 +55,7 @@ header, nav, article, footer, section {
 	border-bottom:1px solid #515151;
 	position:relative;
 	padding:40px 0 4px 0;
+	display:none;
 }
 #auth{
 	background-color:#f5ece8;
@@ -163,7 +164,7 @@ header, nav, article, footer, section {
 	width:139px;
 	height:37px;
 	position:absolute;
-	bottom:492px;
+	bottom:505px;
 	margin:0 2px 2px 0;
 	border:1px solid transparent;
 	font-size:21px;

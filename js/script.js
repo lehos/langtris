@@ -9,9 +9,12 @@ var Langtris = function(){
 
 		brick_w: 143,
 		brick_h: 41,
+		brick_init_bottom: 432,
 
 		fall_speed: 4000,
-		fall_delay: 100
+		fall_delay: 1000,
+
+		initial_rows_fill: 2
 	};
 
 	var langs = ["en", "ru"];
@@ -30,7 +33,7 @@ var Langtris = function(){
 	 */
 	var wall = [];
 
-	var bricks_rain = function(){
+	var brick = function(params){
 //		выбираем словарь
 		var lang = langs[random(0, 1)];
 		var lang_dic = eval(lang + "_dic");
@@ -39,18 +42,28 @@ var Langtris = function(){
 		var word = lang_dic[random(0, lang_dic.length - 1)];
 
 //		выбираю колонку, в которое будет падать слово
-		var column = random(0, config.map_column_count - 1);
+		var column;
+		if (params.column){
+			column = params.column;
+		} else {
+			column = random(0, config.map_column_count - 1);
+		}
 
 //		высчитываю пустое место (номер строки)
 		var row;
-//		если колонка есть (даже пустая)
-		if (wall[column]){
-			row = wall[column].length;
-//		если же колонки нет
+		if (params.row) {
+			row = params.row
 		} else {
-			wall[column] = [];
-			row = 0;
+//			если колонка есть (даже пустая)
+			if (wall[column]){
+				row = wall[column].length;
+//			если же колонки нет
+			} else {
+				wall[column] = [];
+				row = 0;
+			}
 		}
+
 
 		var obj = {
 			lang: lang,
@@ -58,98 +71,53 @@ var Langtris = function(){
 			row: row,
 			column: column,
 			left: config.brick_w * column,
-			bottom: config.brick_h * row
+			bottom_target: config.brick_h * row,
+			// todo вычислять динамически
+			bottom_init: config.brick_init_bottom
 		};
 
-		var $elem = $($brick_template.render({
-			lang: lang,
-			word: word,
-			left: config.brick_w * column,
-			bottom: config.brick_h * row
-		}));
+		obj.elem = $($($brick_template.render(obj)));
 
-		obj.dom_elem = $elem;
-
+		console.log(obj);
 		wall[column][row] = obj;
 
-		$wall.append($elem);
+		$wall.append(obj.elem);
 
-		setTimeout(function(){
-			$elem.animate({bottom:"0px"}, config.fall_speed, function(){console.log("end");});
-		}, 100);
-	};
+		obj.init_show = function(){
+			obj.elem.css({bottom: obj.bottom_target + "px"});
+		};
 
-	bricks_rain();
-	setInterval(function(){
-		bricks_rain()
-	}, config.fall_delay);
-
-//	//карта областей
-//	for (var i = 0; i < config.map_row_count; i++){
-//		var row_arr = [];
-//		for (var j = 0; j < config.map_column_count; j++){
-//			row_arr.push({
-//				lang: "",
-//				word: "",
-//				row_number: i,
-//				column_number: j
-//			});
-//		}
-//		me.map.push(row_arr);
-//	}
-
-	/**
-	 * создание кирпичика
-	 * @param {object} params
-	 * @config {string} [lang]
-	 * @config {string} [word]
-	 * @config {int} [row] row number, 1-based, counts from bottom
-	 * @config {int} [column] column number, 1-based
-	 */
-	var brick_create = function(params){
-		var elem_html = $brick_template.render(params);
-
-		params["html"] = elem_html;
-
-		return params;
-	};
-
-	/**
-	 * кирпичик падает
-	 * @param {object} params
-	 * @config {string} [lang]
-	 * @config {string} [word]
-	 * @config {int} [row] row number, 1-based, counts from bottom
-	 * @config {int} [column] column number, 1-based
-	 */
-	var brick_fall = function(params){
-		var $elem = brick_create(params.html);
-
-		$tris.append($elem);
-
-
-		$elem.animate({bottom:"0px"}, config.fall_speed);
-	};
-
-
-//
-//	var fall_timeout;
-//
-//	var init = function(){
-//		var params = {
-//
+//		obj.fall = function(){
+//			obj.elem.animate({bottom: obj.bottom_target + "px"}, config.fall_speed, "linear");
 //		};
-//		var fall = setInterval(brick_fall(params), config.fall_delay);
+
+		return obj;
+	};
+
+	for (var i = 0; i < config.initial_rows_fill * config.map_row_count; i++){
+		for (var j = 0; j < config.map_column_count; j++){
+			var b = new brick({
+				row: i,
+				column: j
+			});
+			b.init_show();
+		}
+	}
+
+//	var bricks_rain = function(){
+//		var b = new brick;
+//		b.init_show();
 //	};
 //
-//	brick_fall({
-//		lang: "en",
-//		word: "city",
-//		row: 0,
-//		column: 1
-//	});
+//	bricks_rain();
+//
+//	setInterval(function(){
+//		bricks_rain()
+//	}, config.fall_delay);
 
-//	$tris.append(elems);
+
+
+
 };
 
 $(document).ready(function(){
