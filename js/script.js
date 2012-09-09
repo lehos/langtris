@@ -35,18 +35,21 @@ var Langtris = function(params){
 	this.init();
 
 	var $pause = $("#toolbar .pause");
-	var $play = $("#toolbar .play");
+	var $play = $(".play");
 	var $replay = $("#toolbar .replay");
+	var $curtain = $("#curtain");
 
 	$pause.click(function(){
-		$play.removeClass("hidden");
+		$play.show();
+		$curtain.show();
 		$pause.addClass("hidden");
 		obj.pause();
 	});
 
 	$play.click(function(){
 		$pause.removeClass("hidden");
-		$play.addClass("hidden");
+		$play.hide();
+		$curtain.hide();
 		obj.play();
 	});
 
