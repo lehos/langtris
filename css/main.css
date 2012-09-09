@@ -104,6 +104,9 @@ header, nav, article, footer, section {
 		padding:0 8px;
 		cursor:pointer;
 	}
+		.toolbar-button.hidden{
+			display:none;
+		}
 		.toolbar-button:hover{
 			color:#be7551;
 			border-color:#be7551;
@@ -139,12 +142,14 @@ header, nav, article, footer, section {
 			line-height: 0.8;
 			display: inline-block;
 		}
-	.pause{
+	.pause,
+	.play{
 		margin-right:40px;
 	}
 		.pause .icon{
 			background-position:0 0;
 		}
+
 	.replay .icon{
 		background-position:0 -15px;
 		width:13px;
@@ -162,6 +167,14 @@ header, nav, article, footer, section {
 	overflow:hidden;
 }
 
+.loss{
+	position:absolute;
+	color:red;
+	font-size:40px;
+	left:50%;
+	top:20px;
+	display:none;
+}
 
 .brick{
 	width:160px;

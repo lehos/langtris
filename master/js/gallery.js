@@ -26,13 +26,15 @@ function Gallery(elem){
 	// достаем (jQuery) элементы, из которых сделаем элементы коллекции
 	var items = this.ptr.find('li');
 
-	// находим расстояние на круге (длина сегмента), на котором будут отстоять элементы друг от друга
+	// находим расстояние на круге (длина сегмента), на котором будут отстоять
+	// элементы друг от друга
 	var segment_len = Math.PI * 2 / items.length;
 
 
 	var _g_items = [];
 
-	// находим центр композиции, относительно которого будут располагаться элементы галереи
+	// находим центр композиции, относительно которого будут располагаться
+	// элементы галереи
 	var origin = {
 		x: this.ptr.width() / 2,
 		y: this.ptr.height() / 2
@@ -48,9 +50,11 @@ function Gallery(elem){
 	var me = this;
 
 	// вешаем события (jQuery)
-	this.ptr.mouseover(function(){ me.onMouseOver(); }).mouseout(function(){ me.onMouseOut(); })
+	this.ptr
+		.mouseover(function(){ me.onMouseOver(); })
+		.mouseout(function(){ me.onMouseOut(); })
 	this.hideTrigger = function(){ me.hide(); };
-};
+}
 
 /** Радиус круга */
 Gallery.RADIUS = 250;
@@ -162,7 +166,9 @@ function GalleryItem(elem, angle, origin){
 	var me = this;
 
 	// вешаем события
-	this.ptr.mouseover(function(){ me.hilite(); }).mouseout(function(){ me.downlite(); });
+	this.ptr
+		.mouseover(function(){ me.highlight(); })
+		.mouseout(function(){ me.unhighlight(); });
 
 	// размещаем элемент в точке отсчета
 	this.place(0);
@@ -192,7 +198,7 @@ GalleryItem.prototype = {
 	/**
 	 * Подсветить элемент
 	 */
-	hilite: function(){
+	highlight: function(){
 		this.stopAnimation();
 		this.tween = new Tween(this.ptr, 'background-color', EEQ.linear, '#b1d3fd', '#fdec7f', GalleryItem.ANIMATION_ITEM);
 	},
@@ -200,7 +206,7 @@ GalleryItem.prototype = {
 	/**
 	 * Убрать подсветку
 	 */
-	downlite: function(){
+	unhighlight: function(){
 		this.stopAnimation();
 		this.tween = new Tween(this.ptr, 'background-color', EEQ.linear, '#fdec7f', '#b1d3fd', GalleryItem.ANIMATION_ITEM);
 	},
