@@ -36,10 +36,10 @@
 
 			<div id="toolbar">
 				<div class="languages toolbar-item">
-					<div class="language toolbar-button select">
+					<div class="language toolbar-button rus">
 						Русский
 					</div>
-					<div class="language toolbar-button select">
+					<div class="language toolbar-button eng">
 						English
 					</div>
 					<div class="language-add"></div>
@@ -54,9 +54,9 @@
 					<span class="icon"></span>
 				</div>
 
-				<div class="play toolbar-button hidden">
-					<span class="icon">&rarr;</span>
-				</div>
+				<!--<div class="play toolbar-button hidden">-->
+					<!--<span class="icon">&rarr;</span>-->
+				<!--</div>-->
 
 				<div class="replay toolbar-button">
 					<span class="icon"></span>
@@ -73,14 +73,15 @@
 		</div>
 	</div>
 
+    <div id="curtain">
+        <div class="play"></div>
+    </div>
+
 	<script id="template-brick" type="text/x-jsrender">
 		<div class="brick {{>lang}}" data-lang="{{>lang}}" data-row="{{>row}}" data-column="{{>column}}"
 			 data-bottom-target="{{>bottom_target}}" style="left:{{>left}}px; bottom:{{>bottom_init}}">
 			{{>word}}
 		</div>
 	</script>
-
-
-
 </body>
 </html>
