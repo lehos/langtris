@@ -42,12 +42,10 @@ var Langtris = function(params){
 	$pause.click(function(){
 		$play.show();
 		$curtain.show();
-		$pause.addClass("hidden");
 		obj.pause();
 	});
 
 	$play.click(function(){
-		$pause.removeClass("hidden");
 		$play.hide();
 		$curtain.hide();
 		obj.play();

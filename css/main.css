@@ -150,18 +150,25 @@ header, nav, article, footer, section {
 			line-height: 0.8;
 			display: inline-block;
 		}
-	.pause,
-	.play{
-		margin-right:40px;
+
+	.pause{
+		margin-right: 40px;
 	}
 		.pause .icon{
-			background-position:0 0;
+			background-position: 0 0;
+		}
+		.pause:hover .icon{
+			background-position: -16px 0;
 		}
 
 	.replay .icon{
-		background-position:0 -15px;
-		width:13px;
+		background-position: 0 -15px;
+		width: 13px;
 	}
+		.replay:hover .icon{
+			background-position: -16px -15px;
+			width: 13px;
+		}
 
 #wall-wrap{
 	border-bottom:1px solid #515151;
@@ -185,7 +192,7 @@ header, nav, article, footer, section {
 }
 
 .brick{
-	width:160px;
+	width:156px;
 	height:37px;
 	position:absolute;
 	bottom:505px;
