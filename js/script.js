@@ -17,9 +17,9 @@ var Langtris = function(params){
 		brick_h: 41,
 
 		fall_speed: 1000,
-		fall_delay: 100,
+		fall_delay: 500,
 
-		initial_rows_fill: 5,
+		initial_rows_fill: 3,
 
 		bottom_init: 505
 	};
@@ -28,8 +28,12 @@ var Langtris = function(params){
 	this.$brick_template = $(this.conf.brick_template);
 
 	this.langs = ["en", "ru"];
-	this.en_dic = ["city", "cucumber", "gloves", "learn", "man", "skin", "spoon", "swim", "razor", "watch"];
-	this.ru_dic = ["город", "огурец", "перчатки", "учиться", "мужчина", "кожа", "ложка", "плавать", "бритва", "часы"];
+	this.en_dic = ["city", "cucumber", "gloves", "learn", "man", "skin", "spoon", "swim", "razor", "watch", "april",
+		"august", "december", "february", "friday", "january", "july", "june", "monday", "november", "october",
+		"saturday", "september", "sunday", "thursday", "tuesday", "wednesday"];
+	this.ru_dic = ["город", "огурец", "перчатки", "учиться", "мужчина", "кожа", "ложка", "плавать", "бритва", "часы",
+		"апрель", "август", "декабрь", "февраль", "пятница", "январь", "июль", "июнь", "понедельник", "ноябрь",
+		"октябрь", "суббота", "сентябрь", "воскресенье", "четверг", "вторник", "среда"];
 
 
 	this.init();
@@ -60,26 +64,30 @@ Langtris.prototype = {
 	// профукали
 	loss: function(){
 		console.log("loss");
+		
 		clearInterval(this.rain);
 		$(".loss").show();
 	},
 
 	pause: function(){
 		console.log("pause");
+		
 		clearInterval(this.rain);
 	},
 
 	play: function(){
 		console.log("play");
+		
 		var obj = this;
 		this.rain = setInterval(function(){
-			var b = new Brick(obj, obj.calc_destination());
+			var b = new Brick(obj, $.extend({}, obj.calc_destination(), obj.choose_word()));
 			b.fall();
 		}, obj.conf.fall_delay);
 	},
 
 	replay: function(){
 		console.log("replay");
+		
 		clearInterval(this.rain);
 		this.clear_wall();
 		this.init();
@@ -87,6 +95,7 @@ Langtris.prototype = {
 
 	clear_wall: function(){
 		console.log("clear_wall");
+		
 		for (var i = 0; i < this.conf.wall_column_count; i++){
 			this.wall[i] = [];
 		}
@@ -96,6 +105,7 @@ Langtris.prototype = {
 
 	init: function(){
 		console.log("init");
+		
 		/**
 		 * массив колонок, каждая из которых,
 		 * в свою очередь, массив объектов-кирпичиков
@@ -106,11 +116,17 @@ Langtris.prototype = {
 			this.wall[i] = [];
 		}
 
+		// массив с выпавшими словами, которые уже показвать не надо
+		// сохраняю порядковые номера
+		this.chosen_words = [];
+
 		for (var i = 0; i < this.conf.initial_rows_fill; i++){
 			for (var j = 0; j < this.conf.wall_column_count; j++){
 				var b = new Brick(this, {
 					row: i,
-					column: j
+					column: j,
+					lang: this.choose_word().lang,
+					word: this.choose_word().word
 				});
 
 				b.init_show();
@@ -157,22 +173,59 @@ Langtris.prototype = {
 		}
 
 		return {column: column, row: row}
+	},
+
+	choose_word: function(){
+		var r = {};
+		var lang_n = random(0, 1);
+		r.lang = this.langs[lang_n];
+		var lang_dic = this[r.lang + "_dic"];
+
+		if (lang_dic.length > 0) {
+			var n = random(0, lang_dic.length - 1);
+
+			//	выбираем слово из словаря
+			r.word = lang_dic[n];
+
+			//удаляем это слово из массива
+			lang_dic.splice(n, 1);
+		} else {
+			console.log("словарь " + r.lang + " кончился, пробую другой");
+
+			// берем другой словарь
+			r.lang = this.langs[Math.abs(lang_n - 1)];
+			lang_dic = this[r.lang + "_dic"];
+
+			console.log(r.lang, lang_dic);
+
+			if (lang_dic.length > 0) {
+				console.log("ok, в другом словаре еще что-то есть");
+				var n = random(0, lang_dic.length - 1);
+
+				//	выбираем слово из словаря
+				r.word = lang_dic[n];
+
+				//удаляем это слово из массива
+				lang_dic.splice(n, 1);
+			} else {
+				console.log("все словари кончились, пока");
+
+				this.loss();
+
+				return
+			}
+		}
+
+
+		return r;
 	}
 };
 
 
 var Brick = function(obj, params){
-	this.Wall = obj;
+	this.langtris = obj;
 
-	//	выбираем словарь
-	this.lang = obj.langs[random(0, 1)];
-	var lang_dic = eval("obj." + this.lang + "_dic");
-
-	//	выбираем слово из словаря
-	this.word = lang_dic[random(0, lang_dic.length - 1)];
-
-	this.column = params.column;
-	this.row = params.row;
+	$.extend(this, params);
 
 	//	координата left кирпичика
 	this.left = obj.conf.brick_w * this.column;
@@ -193,7 +246,7 @@ var Brick = function(obj, params){
 
 	obj.wall[this.column][this.row] = this;
 
-	//	добавляем кирпич на сцену
+	//	добавляем кирпич на стену
 	obj.$wall.append(this.elem);
 
 	return this;
@@ -201,14 +254,14 @@ var Brick = function(obj, params){
 
 
 Brick.prototype = {
-//	кубик сразу появляется на своем месте в начале уровня
+//	кирпичик сразу появляется на своем месте в начале уровня
 	init_show: function(){
 		this.elem.css({bottom: this.bottom_target + "px"}).addClass("stable");
 	},
 
 //	падение кубика на свободное место
 	fall: function(){
-		this.elem.animate({bottom: this.bottom_target + "px"}, this.Wall.conf.fall_speed, "linear", function(){
+		this.elem.animate({bottom: this.bottom_target + "px"}, this.langtris.conf.fall_speed, "linear", function(){
 			$(this).addClass("stable");
 		});
 	}
@@ -216,5 +269,5 @@ Brick.prototype = {
 
 
 $(document).ready(function(){
-	langtris = new Langtris();
+	l = new Langtris();
 });
