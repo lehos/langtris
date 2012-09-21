@@ -36,6 +36,8 @@ var Langtris = function(params){
 		"октябрь", "суббота", "сентябрь", "воскресенье", "четверг", "вторник", "среда"];
 
 
+	this.matcher = {};
+
 	this.init();
 
 	var $pause = $("#toolbar .pause");
@@ -196,7 +198,7 @@ Langtris.prototype = {
 			r.lang = this.langs[Math.abs(lang_n - 1)];
 			lang_dic = this[r.lang + "_dic"];
 
-			console.log(r.lang, lang_dic);
+//			console.log(r.lang, lang_dic);
 
 			if (lang_dic.length > 0) {
 				console.log("ok, в другом словаре еще что-то есть");
@@ -216,16 +218,26 @@ Langtris.prototype = {
 			}
 		}
 
-
 		return r;
+	},
+
+	match_words: function(){
+
 	}
 };
 
 
 var Brick = function(obj, params){
 	this.langtris = obj;
+	var me = this;
 
-	$.extend(this, params);
+
+//	$.extend(this, params);
+	this.lang = params.lang;
+	this.word = params.word;
+	this.column = params.column;
+	this.row = params.row;
+
 
 	//	координата left кирпичика
 	this.left = obj.conf.brick_w * this.column;
@@ -234,14 +246,13 @@ var Brick = function(obj, params){
 	this.bottom_target = obj.conf.brick_h * this.row;
 	this.bottom_init = obj.conf.bottom_init;
 
+	console.log(this);
 	//	рендерим кирпичик
 	this.elem = $($(obj.$brick_template.render(this)));
 
 	//	обрабатываем клик на кирпич
 	this.elem.bind("click", function(){
-		if (!$(this).is(":animated")){
-			$(this).toggleClass("selected");
-		}
+		me.pick();
 	});
 
 	obj.wall[this.column][this.row] = this;
@@ -264,6 +275,17 @@ Brick.prototype = {
 		this.elem.animate({bottom: this.bottom_target + "px"}, this.langtris.conf.fall_speed, "linear", function(){
 			$(this).addClass("stable");
 		});
+	},
+
+	pick: function(){
+		console.log("pick");
+		if (!this.elem.hasClass("selected")){
+			$(".brick.selected." + this.lang).removeClass("selected");
+			this.elem.addClass("selected");
+			this.langtris.matcher[this.lang] = this.word;
+			console.log(this.langtris.matcher);
+		}
+
 	}
 };
 
