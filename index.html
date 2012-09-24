@@ -18,6 +18,7 @@
 
 	<script type="text/javascript" src="js/jquery.js"></script>
 	<script type="text/javascript" src="js/jsrender.js"></script>
+	<script type="text/javascript" src="js/underscore.js"></script>
 	<script type="text/javascript" src="js/script.js"></script>
 
 	<link rel="stylesheet" href="css/main.css" type="text/css" />
@@ -50,7 +51,7 @@
 					<span class="level-current">1</span>
 				</div>
 
-				<div class="pause toolbar-button">
+				<div class="pause toolbar-button" id="pause">
 					<span class="icon"></span>
 				</div>
 
@@ -58,7 +59,7 @@
 					<!--<span class="icon">&rarr;</span>-->
 				<!--</div>-->
 
-				<div class="replay toolbar-button">
+				<div class="replay toolbar-button" id="replay">
 					<span class="icon"></span>
 					Replay
 				</div>
@@ -74,11 +75,11 @@
 	</div>
 
     <div id="curtain">
-        <div class="play"></div>
+        <div class="play" id="play" title="Продолжить"></div>
     </div>
 
 	<script id="template-brick" type="text/x-jsrender">
-		<div class="brick {{>lang}}" data-lang="{{>lang}}" data-row="{{>row}}" data-column="{{>column}}"
+		<div class="brick {{>lang_name}}" data-word-id="{{>word_id}}" data-lang="{{>lang_name}}" data-row="{{>row}}" data-column="{{>column}}"
 			 data-bottom-target="{{>bottom_target}}" style="left:{{>left}}px; bottom:{{>bottom_init}}">
 			{{>word}}
 		</div>

@@ -90,6 +90,8 @@ header, nav, article, footer, section {
 	margin-left:203px;
 	padding:11px 0 0 0;
 	font-size:17px;
+	position: relative;
+	z-index: 1;
 }
 	.toolbar-item{
 		display:inline-block;
@@ -179,7 +181,7 @@ header, nav, article, footer, section {
 	position:relative;
 	width:100%;
 	height:482px;
-	overflow:hidden;
+	/*overflow:hidden;*/
 }
 
 .loss{
@@ -200,6 +202,9 @@ header, nav, article, footer, section {
 	border:1px solid transparent;
 	font-size:21px;
 	line-height:38px;
+	/*font-size: 15px;*/
+	overflow: hidden;
+	/*line-height: 1;*/
 	border-radius:10px;
 	text-align:center;
 	vertical-align:top;
@@ -223,6 +228,7 @@ header, nav, article, footer, section {
 #curtain{
 	background: rgba(0, 0, 0, 0.5);
 	position: fixed;
+	z-index: 1000;
 	top: 0;
 	left: 0;
 	width: 100%;

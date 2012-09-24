@@ -7,19 +7,24 @@ var Langtris = function(params){
 
 //	TODO учитывать аргументы, переданные в объект
 	this.conf = {
+		en_dict: "dicts/en.dic",
+		ru_dict: "dicts/ru.dic",
+
+		crop: 20,
+
+		fall_speed: 100,
+		fall_delay: 100,
+
+		initial_rows_fill: 6,
+
 		wall_selector: "#wall",
 		brick_template: "#template-brick",
-		
+
 		wall_row_count: 12,
 		wall_column_count: 6,
 
 		brick_w: 160,
 		brick_h: 41,
-
-		fall_speed: 1000,
-		fall_delay: 500,
-
-		initial_rows_fill: 3,
 
 		bottom_init: 505
 	};
@@ -27,87 +32,150 @@ var Langtris = function(params){
 	this.$wall = $(this.conf.wall_selector);
 	this.$brick_template = $(this.conf.brick_template);
 
-	this.langs = ["en", "ru"];
-	this.en_dic = ["city", "cucumber", "gloves", "learn", "man", "skin", "spoon", "swim", "razor", "watch", "april",
-		"august", "december", "february", "friday", "january", "july", "june", "monday", "november", "october",
-		"saturday", "september", "sunday", "thursday", "tuesday", "wednesday"];
-	this.ru_dic = ["город", "огурец", "перчатки", "учиться", "мужчина", "кожа", "ложка", "плавать", "бритва", "часы",
-		"апрель", "август", "декабрь", "февраль", "пятница", "январь", "июль", "июнь", "понедельник", "ноябрь",
-		"октябрь", "суббота", "сентябрь", "воскресенье", "четверг", "вторник", "среда"];
+
+//	var lang1 = {
+//		name: "en",
+//
+//		dict: ["city", "cucumber", "gloves", "learn", "man", "skin", "spoon", "swim", "razor", "watch", "april",
+//			"august", "december", "february", "friday", "january", "july", "june", "monday", "november", "october",
+//			"saturday", "september", "sunday", "thursday", "tuesday", "wednesday"]
+//	};
+//	var lang2 = {
+//		name: "ru.dic",
+//
+//		dict: ["город", "огурец", "перчатки", "учиться", "мужчина", "кожа", "ложка", "плавать", "бритва", "часы",
+//			"апрель", "август", "декабрь", "февраль", "пятница", "январь", "июль", "июнь", "понедельник", "ноябрь",
+//			"октябрь", "суббота", "сентябрь", "воскресенье", "четверг", "вторник", "среда"]
+//	};
+//	this.langs = [lang1, lang2];
+
+	//переменная-помощник для выбора слов, чтоб они не повторялись
+	//первый массив - range от нуля до кол-ва слова в словаре
+	//второй и третий - номера уже использованных слов
+	this.used_words = [[], [], []];
+
+	this.langs = [];
+
+	this.load_dicts();
 
 
-	this.matcher = {};
+	// переменная-помощник для выщелкивания слов
+	// хранит в себе айдишники выбранных слов и ссылки на соотв. им объекты
+	this.matcher = [{},{}];
 
-	this.init();
+	this.$pause = $("#pause");
+	this.$play = $(".play");
+	this.$replay = $("#replay");
+	this.$curtain = $("#curtain");
 
-	var $pause = $("#toolbar .pause");
-	var $play = $(".play");
-	var $replay = $("#toolbar .replay");
-	var $curtain = $("#curtain");
-
-	$pause.click(function(){
-		$play.show();
-		$curtain.show();
+	this.$pause.click(function(){
 		obj.pause();
 	});
 
-	$play.click(function(){
-		$play.hide();
-		$curtain.hide();
+	this.$play.click(function(){
 		obj.play();
 	});
 
-	$replay.click(function(){
+	this.$replay.click(function(){
 		obj.replay();
 	});
 };
 
 Langtris.prototype = {
-	// профукали
-	loss: function(){
-		console.log("loss");
-		
-		clearInterval(this.rain);
-		$(".loss").show();
-	},
-
-	pause: function(){
-		console.log("pause");
-		
-		clearInterval(this.rain);
-	},
-
-	play: function(){
-		console.log("play");
-		
+	load_dicts: function(){
 		var obj = this;
-		this.rain = setInterval(function(){
-			var b = new Brick(obj, $.extend({}, obj.calc_destination(), obj.choose_word()));
-			b.fall();
-		}, obj.conf.fall_delay);
+
+		$.when($.get("dicts/en.dic"), $.get("dicts/ru.dic")).done(function(args1, args2){
+			obj.langs.push({
+				name: "en",
+				dict: args1[0].split("\n")
+			});
+
+			obj.langs.push({
+				name: "ru",
+				dict: args2[0].split("\n")
+			});
+
+			//уменьшаю словари
+			if (obj.conf.crop != undefined){
+				for (var i = 0; i < 2; i++){
+					obj.langs[i].dict.splice(obj.conf.crop, obj.langs[i].dict.length - obj.conf.crop);
+				}
+			}
+
+
+			//запомниаю длину словаря
+			obj.dict_length = obj.langs[0].dict.length;
+
+			obj.used_words[0] = _.range(obj.langs[0].dict.length);
+
+//			console.log("словари загружены");
+
+			// запускаем игру
+			obj.init();
+		});
 	},
 
-	replay: function(){
-		console.log("replay");
-		
-		clearInterval(this.rain);
-		this.clear_wall();
-		this.init();
-	},
+	/**
+	 * выбираем слово из словаря
+	 * @return {object}
+	 */
+	choose_word: function(){
+		var obj = this;
+		var lang_id = random(0, 1);
+		var lang = this.langs[lang_id];
+		var word_id;
+		var word;
 
-	clear_wall: function(){
-		console.log("clear_wall");
+		var body = function(){
+			//все слова минус использованные
+			var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
+			//из них выбираю айдишник нового слова
+			word_id = diff[random(0, diff.length - 1)];
+
+			//достаю слово из словаря
+			word = lang.dict[word_id];
+
+//			console.log(word_id, word, obj.used_words[lang_id + 1], diff);
+
+			//добавляю этот айдишник в использованные
+			obj.used_words[lang_id + 1].push(word_id);
+		};
 		
-		for (var i = 0; i < this.conf.wall_column_count; i++){
-			this.wall[i] = [];
+//		console.log(this.used_words[lang_id + 1].length, this.dict_length);
+
+
+		// если в этом словаре еще остались неиспользованные слова
+		if (this.used_words[lang_id + 1].length < this.dict_length){
+			body();
+		} else {
+			// смотрим в другой словарь
+
+			lang_id = Math.abs(lang_id - 1);
+			lang = this.langs[lang_id];
+
+			// если в нем что-то есть
+			if (this.used_words[lang_id + 1].length < this.dict_length){
+				body();
+			// если нет
+			} else {
+				this.stop_rain();
+
+				console.log("словари закончились");
+			}
 		}
-		this.$wall.html("");
-		$(".loss").hide();
+
+		return {
+			lang_id: lang_id,
+			lang_name: lang.name,
+			word_id: word_id,
+			word: word
+		};
 	},
 
 	init: function(){
 		console.log("init");
-		
+
 		/**
 		 * массив колонок, каждая из которых,
 		 * в свою очередь, массив объектов-кирпичиков
@@ -122,14 +190,10 @@ Langtris.prototype = {
 		// сохраняю порядковые номера
 		this.chosen_words = [];
 
-		for (var i = 0; i < this.conf.initial_rows_fill; i++){
+		for (i = 0; i < this.conf.initial_rows_fill; i++){
 			for (var j = 0; j < this.conf.wall_column_count; j++){
-				var b = new Brick(this, {
-					row: i,
-					column: j,
-					lang: this.choose_word().lang,
-					word: this.choose_word().word
-				});
+				var b = new Brick(this, $.extend({row: i, column: j}, this.choose_word() ));
+//				console.log(b);
 
 				b.init_show();
 			}
@@ -137,6 +201,65 @@ Langtris.prototype = {
 
 		this.play();
 	},
+
+	// профукали
+	loss: function(){
+		console.log("loss");
+		
+		this.stop_rain();
+		$(".loss").show();
+	},
+
+	pause: function(){
+		console.log("pause");
+
+		this.$play.show();
+		this.$curtain.show();
+
+		this.stop_rain();
+	},
+
+	stop_rain: function(){
+		clearInterval(this.rain_interval);
+	},
+
+	play: function(){
+		console.log("play");
+
+		this.$play.hide();
+		this.$curtain.hide();
+
+		var obj = this;
+		this.rain_interval = setInterval(function(){
+			var b = new Brick(obj, $.extend({}, obj.calc_destination(), obj.choose_word()));
+			b.fall();
+		}, obj.conf.fall_delay);
+	},
+
+	replay: function(){
+		console.log("replay");
+		
+		clearInterval(this.rain_interval);
+		this.clear_wall();
+
+		this.init();
+	},
+
+	clear_wall: function(){
+		console.log("clear_wall");
+		
+		for (var i = 0; i < this.conf.wall_column_count; i++){
+			this.wall[i] = [];
+		}
+
+		for (var i = 1; i < 3; i++){
+			this.used_words[i].splice(0, this.used_words[i].length);
+		}
+
+		this.$wall.html("");
+		$(".loss").hide();
+	},
+
 
 	// расчитываем колонку и строку, где должен оказаться кирипич
 	// параллельно ловим проигрыш уровня
@@ -177,49 +300,6 @@ Langtris.prototype = {
 		return {column: column, row: row}
 	},
 
-	choose_word: function(){
-		var r = {};
-		var lang_n = random(0, 1);
-		r.lang = this.langs[lang_n];
-		var lang_dic = this[r.lang + "_dic"];
-
-		if (lang_dic.length > 0) {
-			var n = random(0, lang_dic.length - 1);
-
-			//	выбираем слово из словаря
-			r.word = lang_dic[n];
-
-			//удаляем это слово из массива
-			lang_dic.splice(n, 1);
-		} else {
-			console.log("словарь " + r.lang + " кончился, пробую другой");
-
-			// берем другой словарь
-			r.lang = this.langs[Math.abs(lang_n - 1)];
-			lang_dic = this[r.lang + "_dic"];
-
-//			console.log(r.lang, lang_dic);
-
-			if (lang_dic.length > 0) {
-				console.log("ok, в другом словаре еще что-то есть");
-				var n = random(0, lang_dic.length - 1);
-
-				//	выбираем слово из словаря
-				r.word = lang_dic[n];
-
-				//удаляем это слово из массива
-				lang_dic.splice(n, 1);
-			} else {
-				console.log("все словари кончились, пока");
-
-				this.loss();
-
-				return
-			}
-		}
-
-		return r;
-	},
 
 	match_words: function(){
 
@@ -228,16 +308,12 @@ Langtris.prototype = {
 
 
 var Brick = function(obj, params){
-	this.langtris = obj;
+	this.obj = obj;
 	var me = this;
 
+	$.extend(this, params);
 
-//	$.extend(this, params);
-	this.lang = params.lang;
-	this.word = params.word;
-	this.column = params.column;
-	this.row = params.row;
-
+	this.id = 0;
 
 	//	координата left кирпичика
 	this.left = obj.conf.brick_w * this.column;
@@ -246,7 +322,8 @@ var Brick = function(obj, params){
 	this.bottom_target = obj.conf.brick_h * this.row;
 	this.bottom_init = obj.conf.bottom_init;
 
-	console.log(this);
+	// console.log(this);
+
 	//	рендерим кирпичик
 	this.elem = $($(obj.$brick_template.render(this)));
 
@@ -272,20 +349,42 @@ Brick.prototype = {
 
 //	падение кубика на свободное место
 	fall: function(){
-		this.elem.animate({bottom: this.bottom_target + "px"}, this.langtris.conf.fall_speed, "linear", function(){
+		this.elem.animate({bottom: this.bottom_target + "px"}, this.obj.conf.fall_speed, "linear", function(){
 			$(this).addClass("stable");
 		});
 	},
 
 	pick: function(){
-		console.log("pick");
-		if (!this.elem.hasClass("selected")){
-			$(".brick.selected." + this.lang).removeClass("selected");
-			this.elem.addClass("selected");
-			this.langtris.matcher[this.lang] = this.word;
-			console.log(this.langtris.matcher);
+		if (this.elem.hasClass("selected")){
+			return false;
 		}
 
+		console.log("pick");
+//			console.log(this);
+		$(".brick.selected." + this.lang_name).removeClass("selected");
+		this.elem.addClass("selected");
+
+		var lang_id = this.lang_id;
+		var word_id = this.word_id;
+		var o_lang_id = Math.abs(lang_id - 1);
+		var matcher = this.obj.matcher;
+
+		matcher[lang_id]["id"] = this.word_id;
+		matcher[lang_id]["brick"] = this;
+
+		console.log(matcher);
+
+		// если выбрано слово-перевод
+		if (matcher[lang_id]["id"] == matcher[o_lang_id]["id"]){
+			this.elem.remove();
+			$("[data-word-id='" + word_id + "']").remove();
+			matcher.splice(0, 2);
+		} else {
+			// если слова в другом языке выбрано еще не было
+			if (_.size(matcher[o_lang_id])) {
+				$(".brick.selected").removeClass("selected");
+			}
+		}
 	}
 };
 
