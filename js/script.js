@@ -2,7 +2,7 @@ function random(from, to){
 	return Math.floor(Math.random() * (to - from + 1) + from);
 }
 
-var Langtris = function(params){
+var Langtris = function(){
 	var obj = this;
 
 //	TODO учитывать аргументы, переданные в объект
@@ -10,10 +10,10 @@ var Langtris = function(params){
 		en_dict: "dicts/en.dic",
 		ru_dict: "dicts/ru.dic",
 
-		crop: 20,
+		crop: 35,
 
-		fall_speed: 100,
-		fall_delay: 100,
+		fall_speed: 1000,
+		fall_delay: 3000,
 
 		initial_rows_fill: 6,
 
@@ -33,22 +33,6 @@ var Langtris = function(params){
 	this.$brick_template = $(this.conf.brick_template);
 
 
-//	var lang1 = {
-//		name: "en",
-//
-//		dict: ["city", "cucumber", "gloves", "learn", "man", "skin", "spoon", "swim", "razor", "watch", "april",
-//			"august", "december", "february", "friday", "january", "july", "june", "monday", "november", "october",
-//			"saturday", "september", "sunday", "thursday", "tuesday", "wednesday"]
-//	};
-//	var lang2 = {
-//		name: "ru.dic",
-//
-//		dict: ["город", "огурец", "перчатки", "учиться", "мужчина", "кожа", "ложка", "плавать", "бритва", "часы",
-//			"апрель", "август", "декабрь", "февраль", "пятница", "январь", "июль", "июнь", "понедельник", "ноябрь",
-//			"октябрь", "суббота", "сентябрь", "воскресенье", "четверг", "вторник", "среда"]
-//	};
-//	this.langs = [lang1, lang2];
-
 	//переменная-помощник для выбора слов, чтоб они не повторялись
 	//первый массив - range от нуля до кол-ва слова в словаре
 	//второй и третий - номера уже использованных слов
@@ -60,8 +44,8 @@ var Langtris = function(params){
 
 
 	// переменная-помощник для выщелкивания слов
-	// хранит в себе айдишники выбранных слов и ссылки на соотв. им объекты
-	this.matcher = [{},{}];
+	// хранит в себе ссылки на соотв. им объекты
+	this.matcher = [];
 
 	this.$pause = $("#pause");
 	this.$play = $(".play");
@@ -127,7 +111,7 @@ Langtris.prototype = {
 		var word_id;
 		var word;
 
-		var body = function(){
+		var choose_word_body = function(){
 			//все слова минус использованные
 			var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
 			//из них выбираю айдишник нового слова
@@ -147,7 +131,7 @@ Langtris.prototype = {
 
 		// если в этом словаре еще остались неиспользованные слова
 		if (this.used_words[lang_id + 1].length < this.dict_length){
-			body();
+			choose_word_body();
 		} else {
 			// смотрим в другой словарь
 
@@ -156,7 +140,7 @@ Langtris.prototype = {
 
 			// если в нем что-то есть
 			if (this.used_words[lang_id + 1].length < this.dict_length){
-				body();
+				choose_word_body();
 			// если нет
 			} else {
 				this.stop_rain();
@@ -300,9 +284,25 @@ Langtris.prototype = {
 		return {column: column, row: row}
 	},
 
+	// когда выщелкивается слово, другие слова над этим словом в колонке падают вниз
+	move_column: function(column_id){
+		// ищем дыру в стене
+		var hole;
+		for (var i = 0; i < this.wall[column_id].length; i++){
+			if (i != this.wall[column_id][i].row){
+				hole = i;
+				break;
+			}
+		}
 
-	match_words: function(){
-
+		if (hole != undefined){
+			for (var i = hole; i < this.wall[column_id].length; i++){
+				var brick = this.wall[column_id][i];
+				brick.set_row(i);
+				brick.fall();
+			}
+			console.log("в колонке " + column_id + " дыра " + hole);
+		}
 	}
 };
 
@@ -354,6 +354,11 @@ Brick.prototype = {
 		});
 	},
 
+	set_row: function(row){
+		this.row = row;
+		this.bottom_target = this.obj.conf.brick_h * this.row;
+	},
+
 	pick: function(){
 		if (this.elem.hasClass("selected")){
 			return false;
@@ -362,29 +367,45 @@ Brick.prototype = {
 		console.log("pick");
 //			console.log(this);
 		$(".brick.selected." + this.lang_name).removeClass("selected");
-		this.elem.addClass("selected");
+		this.select();
 
 		var lang_id = this.lang_id;
-		var word_id = this.word_id;
 		var o_lang_id = Math.abs(lang_id - 1);
 		var matcher = this.obj.matcher;
 
-		matcher[lang_id]["id"] = this.word_id;
-		matcher[lang_id]["brick"] = this;
+		matcher[lang_id] = this;
 
-		console.log(matcher);
+		if (matcher[o_lang_id] != undefined){
+			// если выбрано слово-перевод
+			if (matcher[lang_id].word_id == matcher[o_lang_id].word_id){
+				console.log(this.column, this.obj.wall[this.column]);
+				this.remove();
+				matcher[o_lang_id].remove();
+				matcher.splice(0, 2);
+//				console.log(this.column, this.obj.wall[this.column]);
 
-		// если выбрано слово-перевод
-		if (matcher[lang_id]["id"] == matcher[o_lang_id]["id"]){
-			this.elem.remove();
-			$("[data-word-id='" + word_id + "']").remove();
-			matcher.splice(0, 2);
-		} else {
-			// если слова в другом языке выбрано еще не было
-			if (_.size(matcher[o_lang_id])) {
+			// если выбраны разные слова
+			} else {
 				$(".brick.selected").removeClass("selected");
+				matcher.splice(0, 2);
 			}
 		}
+	},
+
+	select: function(){
+		this.elem.addClass("selected");
+	},
+
+	deselect: function(){
+		this.elem.removeClass("selected");
+	},
+
+	remove: function(){
+		console.log("удаляем слово " + this.word);
+		this.obj.wall[this.column].splice(this.row, 1);
+		this.elem.remove();
+		this.obj.move_column(this.column);
+		// move_column должна сама найти "дыры в стене"
 	}
 };
 
