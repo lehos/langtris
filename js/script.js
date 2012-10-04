@@ -402,10 +402,33 @@ Brick.prototype = {
 
 	remove: function(){
 		console.log("удаляем слово " + this.word);
-		this.obj.wall[this.column].splice(this.row, 1);
-		this.elem.remove();
-		this.obj.move_column(this.column);
-		// move_column должна сама найти "дыры в стене"
+
+		var me = this;
+		var elem = this.elem;
+
+//		var speed = 50;
+//		var op = 0;
+//
+//		this.obj.wall[this.column].splice(this.row, 1);
+//		this.elem.animate({opacity: op}, speed, function(){
+//			elem.animate({opacity: 1}, speed, function(){
+//				elem.animate({opacity: op}, speed, function(){
+//					elem.animate({opacity: 1}, speed, function(){
+//						elem.animate({opacity: 0}, speed, function(){
+//							elem.animate({opacity: 1}, speed, function(){
+//								elem.remove();
+//								me.obj.move_column(this.column);
+//							})
+//						})
+//					})
+//				})
+//			})
+//		})
+
+
+		elem.remove();
+		me.obj.wall[me.column].splice(me.row, 1);
+		me.obj.move_column(me.column);
 	}
 };
 
