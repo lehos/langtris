@@ -12,8 +12,9 @@ var Langtris = function(){
 
 		crop: 35,
 
+		fall_column_speed: 150,
 		fall_speed: 1000,
-		fall_delay: 3000,
+		fall_delay: 2000,
 
 		initial_rows_fill: 6,
 
@@ -285,7 +286,7 @@ Langtris.prototype = {
 	},
 
 	// когда выщелкивается слово, другие слова над этим словом в колонке падают вниз
-	move_column: function(column_id){
+	fall_column: function(column_id){
 		// ищем дыру в стене
 		var hole;
 		for (var i = 0; i < this.wall[column_id].length; i++){
@@ -299,7 +300,7 @@ Langtris.prototype = {
 			for (var i = hole; i < this.wall[column_id].length; i++){
 				var brick = this.wall[column_id][i];
 				brick.set_row(i);
-				brick.fall();
+				brick.fall({"fall_column": true});
 			}
 			console.log("в колонке " + column_id + " дыра " + hole);
 		}
@@ -348,8 +349,12 @@ Brick.prototype = {
 	},
 
 //	падение кубика на свободное место
-	fall: function(){
-		this.elem.animate({bottom: this.bottom_target + "px"}, this.obj.conf.fall_speed, "linear", function(){
+	fall: function(params){
+		var speed = (params != undefined && params.fall_column)
+			?  this.obj.conf.fall_column_speed
+			: this.obj.conf.fall_speed;
+
+		this.elem.animate({bottom: this.bottom_target + "px"}, speed, "linear", function(){
 			$(this).addClass("stable");
 		});
 	},
@@ -378,7 +383,7 @@ Brick.prototype = {
 		if (matcher[o_lang_id] != undefined){
 			// если выбрано слово-перевод
 			if (matcher[lang_id].word_id == matcher[o_lang_id].word_id){
-				console.log(this.column, this.obj.wall[this.column]);
+//				console.log(this.column, this.obj.wall[this.column]);
 				this.remove();
 				matcher[o_lang_id].remove();
 				matcher.splice(0, 2);
@@ -406,9 +411,9 @@ Brick.prototype = {
 		var me = this;
 		var elem = this.elem;
 
-//		var speed = 50;
-//		var op = 0;
-//
+		var speed = 50;
+		var op = 0;
+
 //		this.obj.wall[this.column].splice(this.row, 1);
 //		this.elem.animate({opacity: op}, speed, function(){
 //			elem.animate({opacity: 1}, speed, function(){
@@ -417,18 +422,19 @@ Brick.prototype = {
 //						elem.animate({opacity: 0}, speed, function(){
 //							elem.animate({opacity: 1}, speed, function(){
 //								elem.remove();
-//								me.obj.move_column(this.column);
+//								me.obj.wall[me.column].splice(me.row, 1);
+//								me.obj.fall_column(me.column);;
 //							})
 //						})
 //					})
 //				})
 //			})
-//		})
+//		});
 
 
 		elem.remove();
 		me.obj.wall[me.column].splice(me.row, 1);
-		me.obj.move_column(me.column);
+		me.obj.fall_column(me.column);
 	}
 };
 
