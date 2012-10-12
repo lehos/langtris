@@ -1,3 +1,7 @@
+//todo вначале все пары
+
+//todo колонка для следующего слова выбирается так: исключаем две самые длинные колонки, и рандомно в остальные
+
 function random(from, to){
 	return Math.floor(Math.random() * (to - from + 1) + from);
 }
