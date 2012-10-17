@@ -155,6 +155,8 @@ Langtris.prototype = {
 			obj.initial_pairs = [initial_pairs, initial_pairs];
 		}();
 
+		console.log(obj.initial_pairs[0]);
+
 
 		// половина поля заполняется словами сразу
 		for (i = 0; i < this.conf.initial_rows_fill; i++){
@@ -166,7 +168,7 @@ Langtris.prototype = {
 			}
 		}
 
-		this.play();
+//		this.play();
 	},
 
 
@@ -187,7 +189,9 @@ Langtris.prototype = {
 
 		var choose_word = function(){
 			if (initial) {
-				word_id = obj.initial_pairs[lang_id].random();
+				var z = random(0, obj.initial_pairs[lang_id].length - 1);
+				word_id = obj.initial_pairs[lang_id][z];
+				obj.initial_pairs[lang_id].splice(z, 1);
 			} else {
 				//все слова минус использованные
 				var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
