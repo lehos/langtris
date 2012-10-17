@@ -6,6 +6,10 @@ function random(from, to){
 	return Math.floor(Math.random() * (to - from + 1) + from);
 }
 
+Array.prototype.random = function(){
+	return this[random(0, this.length - 1)];
+};
+
 var Langtris = function(){
 	var obj = this;
 
@@ -43,14 +47,17 @@ var Langtris = function(){
 	//второй и третий - номера уже использованных слов
 	this.used_words = [[], [], []];
 
+
+	//  тут буду хранить словари, заполняю в методе load_dicts()
 	this.langs = [];
-
-	this.load_dicts();
-
 
 	// переменная-помощник для выщелкивания слов
 	// хранит в себе ссылки на соотв. им объекты
 	this.matcher = [];
+
+	// массив айдишников слов, которые окажутся на игровом поле сразу (см. init)
+	this.initial_pairs = [];
+
 
 	this.$pause = $("#pause");
 	this.$play = $(".play");
@@ -68,6 +75,10 @@ var Langtris = function(){
 	this.$replay.click(function(){
 		obj.replay();
 	});
+
+
+	// точка входа
+	this.load_dicts();
 };
 
 Langtris.prototype = {
@@ -92,7 +103,6 @@ Langtris.prototype = {
 				}
 			}
 
-
 			//запомниаю длину словаря
 			obj.dict_length = obj.langs[0].dict.length;
 
@@ -105,26 +115,88 @@ Langtris.prototype = {
 		});
 	},
 
+	init: function(){
+		console.log("init");
+
+		var obj = this;
+
+		// todo может это надо перенести в конструктор
+		/**
+		 * массив колонок, каждая из которых,
+		 * в свою очередь, массив объектов-кирпичиков
+		 * @type {Array}
+		 */
+		this.wall = [];
+		for (var i = 0; i < this.conf.wall_column_count; i++){
+			this.wall[i] = [];
+		}
+
+		// todo может это объявление надо перенести в конструктор
+		// массив с выпавшими словами, которые уже показвать не надо.
+		// сохраняю порядковые номера
+		this.chosen_words = [];
+
+
+		/**
+		 * заполняю this.initial_pairs - массив айдишников слов, которые окажутся на игровом поле сразу
+		 */
+		var fill_initial_pairs = function(){
+			var initial_pairs = [];
+
+			var unique_random = function(n, l){
+				return initial_pairs.indexOf(n) == -1
+					? n
+					: unique_random(random(0, l), l);
+			};
+			for (i = 0; i < obj.conf.initial_rows_fill * obj.conf.wall_column_count / 2; i++){
+				initial_pairs.push(unique_random(random(0, obj.dict_length), obj.dict_length));
+			}
+
+			obj.initial_pairs = [initial_pairs, initial_pairs];
+		}();
+
+
+		// половина поля заполняется словами сразу
+		for (i = 0; i < this.conf.initial_rows_fill; i++){
+			for (var j = 0; j < this.conf.wall_column_count; j++){
+				var b = new Brick(this, $.extend({row: i, column: j}, this.choose_word({initial: true})));
+//				console.log(b);
+
+				b.init_show();
+			}
+		}
+
+		this.play();
+	},
+
+
 	/**
 	 * выбираем слово из словаря
 	 * @return {object}
 	 */
-	choose_word: function(){
+	choose_word: function(params){
 		var obj = this;
+
+		// флаг состояния, тру если для начального заполнения
+		var initial = (params != undefined && params.initial) ? true : false;
+
 		var lang_id = random(0, 1);
 		var lang = this.langs[lang_id];
 		var word_id;
 		var word;
 
-		var choose_word_body = function(){
-			//все слова минус использованные
-			var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
-			//из них выбираю айдишник нового слова
-			word_id = diff[random(0, diff.length - 1)];
+		var choose_word = function(){
+			if (initial) {
+				word_id = obj.initial_pairs[lang_id].random();
+			} else {
+				//все слова минус использованные
+				var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
+				//из них выбираю айдишник нового слова
+				word_id = diff[random(0, diff.length - 1)];
+			}
 
 			//достаю слово из словаря
 			word = lang.dict[word_id];
-
 //			console.log(word_id, word, obj.used_words[lang_id + 1], diff);
 
 			//добавляю этот айдишник в использованные
@@ -136,16 +208,15 @@ Langtris.prototype = {
 
 		// если в этом словаре еще остались неиспользованные слова
 		if (this.used_words[lang_id + 1].length < this.dict_length){
-			choose_word_body();
+			choose_word();
 		} else {
 			// смотрим в другой словарь
-
 			lang_id = Math.abs(lang_id - 1);
 			lang = this.langs[lang_id];
 
 			// если в нем что-то есть
 			if (this.used_words[lang_id + 1].length < this.dict_length){
-				choose_word_body();
+				choose_word();
 			// если нет
 			} else {
 				this.stop_rain();
@@ -162,36 +233,7 @@ Langtris.prototype = {
 		};
 	},
 
-	init: function(){
-		console.log("init");
-
-		/**
-		 * массив колонок, каждая из которых,
-		 * в свою очередь, массив объектов-кирпичиков
-		 * @type {Array}
-		 */
-		this.wall = [];
-		for (var i = 0; i < this.conf.wall_column_count; i++){
-			this.wall[i] = [];
-		}
-
-		// массив с выпавшими словами, которые уже показвать не надо
-		// сохраняю порядковые номера
-		this.chosen_words = [];
-
-		for (i = 0; i < this.conf.initial_rows_fill; i++){
-			for (var j = 0; j < this.conf.wall_column_count; j++){
-				var b = new Brick(this, $.extend({row: i, column: j}, this.choose_word() ));
-//				console.log(b);
-
-				b.init_show();
-			}
-		}
-
-		this.play();
-	},
-
-	// профукали
+	// игра проиграна
 	loss: function(){
 		console.log("loss");
 		
@@ -344,7 +386,6 @@ var Brick = function(obj, params){
 
 	return this;
 };
-
 
 Brick.prototype = {
 //	кирпичик сразу появляется на своем месте в начале уровня
