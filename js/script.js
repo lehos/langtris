@@ -172,7 +172,7 @@ Langtris.prototype = {
 			}
 		}
 
-//		this.play();
+		this.play();
 	},
 
 
@@ -477,29 +477,52 @@ Brick.prototype = {
 		var speed = 50;
 		var op = 0;
 
-//		this.obj.wall[this.column].splice(this.row, 1);
-//		this.elem.animate({opacity: op}, speed, function(){
-//			elem.animate({opacity: 1}, speed, function(){
-//				elem.animate({opacity: op}, speed, function(){
-//					elem.animate({opacity: 1}, speed, function(){
-//						elem.animate({opacity: 0}, speed, function(){
-//							elem.animate({opacity: 1}, speed, function(){
-//								elem.remove();
-//								me.obj.wall[me.column].splice(me.row, 1);
-//								me.obj.fall_column(me.column);;
-//							})
-//						})
-//					})
-//				})
-//			})
-//		});
+		this.obj.wall[this.column].splice(this.row, 1);
+		this.elem.animate({opacity: op}, speed, function(){
+			elem.animate({opacity: 1}, speed, function(){
+				elem.animate({opacity: op}, speed, function(){
+					elem.animate({opacity: 1}, speed, function(){
+						elem.animate({opacity: 0}, speed, function(){
+							elem.animate({opacity: 1}, speed, function(){
+								elem.remove();
+								me.obj.wall[me.column].splice(me.row, 1);
+								me.obj.fall_column(me.column);;
+							})
+						})
+					})
+				})
+			})
+		});
 
 
-		elem.remove();
-		me.obj.wall[me.column].splice(me.row, 1);
-		me.obj.fall_column(me.column);
+//		elem.remove();
+//		me.obj.wall[me.column].splice(me.row, 1);
+//		me.obj.fall_column(me.column);
 	}
 };
+
+
+//var func = ( function(){
+//	function write(){
+//		this.number = 18;
+//	}
+//
+//	var f = function(){
+//		this.number = 10;
+//
+//		write.call( this );
+//	}
+//
+//	var obj = {
+//		number2: 10
+//	}
+//
+//	f.prototype = obj;
+//
+//	return f;
+//}() );
+//
+//var p = new func();
 
 
 $(document).ready(function(){
