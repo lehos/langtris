@@ -56,7 +56,7 @@ var Langtris = function(){
 	this.matcher = [];
 
 	// массив айдишников слов, которые окажутся на игровом поле сразу (см. init)
-	this.initial_pairs = [];
+	this.initial_pairs = [[], []];
 
 
 	this.$pause = $("#pause");
@@ -152,16 +152,20 @@ Langtris.prototype = {
 				initial_pairs.push(unique_random(random(0, obj.dict_length), obj.dict_length));
 			}
 
-			obj.initial_pairs = [initial_pairs, initial_pairs];
+//			obj.initial_pairs = [initial_pairs, initial_pairs];
+
+			for (var i = 0; i < initial_pairs.length; i++){
+				obj.initial_pairs[0].push(initial_pairs[i]);
+				obj.initial_pairs[1].push(initial_pairs[i]);
+			}
 		}();
 
-		console.log(obj.initial_pairs[0]);
 
 
 		// половина поля заполняется словами сразу
 		for (i = 0; i < this.conf.initial_rows_fill; i++){
 			for (var j = 0; j < this.conf.wall_column_count; j++){
-				var b = new Brick(this, $.extend({row: i, column: j}, this.choose_word({initial: true})));
+				var b = new Brick(this, $.extend({row: i, column: j}, this.choose_word({initial: true}, i, j)));
 //				console.log(b);
 
 				b.init_show();
@@ -176,7 +180,7 @@ Langtris.prototype = {
 	 * выбираем слово из словаря
 	 * @return {object}
 	 */
-	choose_word: function(params){
+	choose_word: function(params, ii, jj){
 		var obj = this;
 
 		// флаг состояния, тру если для начального заполнения
@@ -189,9 +193,19 @@ Langtris.prototype = {
 
 		var choose_word = function(){
 			if (initial) {
+				// если один словарь пуст, берем другой
+				if (obj.initial_pairs[lang_id].length == 0) {
+					lang_id = Math.abs(lang_id - 1);
+					lang = obj.langs[lang_id];
+				}
+
 				var z = random(0, obj.initial_pairs[lang_id].length - 1);
 				word_id = obj.initial_pairs[lang_id][z];
 				obj.initial_pairs[lang_id].splice(z, 1);
+
+				console.log("проход " + ii, jj);
+				console.log(obj.initial_pairs[0]);
+				console.log(obj.initial_pairs[1]);
 			} else {
 				//все слова минус использованные
 				var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
