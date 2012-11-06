@@ -1,9 +1,25 @@
-//todo вначале все пары
+//todo вначале все пары - dode
 
 //todo колонка для следующего слова выбирается так: исключаем две самые длинные колонки, и рандомно в остальные
 
 function random(from, to){
 	return Math.floor(Math.random() * (to - from + 1) + from);
+}
+
+/**
+ * вовзаращает случайное число в диапазоне from to исключая указаннные в массиве except
+ * @param {number} from
+ * @param {number} to
+ * @param {Array} except
+ * @return {Number}
+ */
+function random_except(from, to, except){
+	var r = random(from, to);
+	if (except.indexOf(r) == -1){
+		return r;
+	} else {
+		random_except(from, to, except);
+	}
 }
 
 Array.prototype.random = function(){
@@ -18,13 +34,13 @@ var Langtris = function(){
 		en_dict: "dicts/en.dic",
 		ru_dict: "dicts/ru.dic",
 
-		crop: 35,
+		crop: 40,
 
 		fall_column_speed: 150,
 		fall_speed: 1000,
 		fall_delay: 2000,
 
-		initial_rows_fill: 6,
+		initial_rows_fill: 2,
 
 		wall_selector: "#wall",
 		brick_template: "#template-brick",
@@ -54,10 +70,6 @@ var Langtris = function(){
 	// переменная-помощник для выщелкивания слов
 	// хранит в себе ссылки на соотв. им объекты
 	this.matcher = [];
-
-	// массив айдишников слов, которые окажутся на игровом поле сразу (см. init)
-	this.initial_pairs = [[], []];
-
 
 	this.$pause = $("#pause");
 	this.$play = $(".play");
@@ -120,10 +132,9 @@ Langtris.prototype = {
 
 		var obj = this;
 
-		// todo может это надо перенести в конструктор
 		/**
 		 * массив колонок, каждая из которых,
-		 * в свою очередь, массив объектов-кирпичиков
+		 * в свою очередь, массив объектов Brick
 		 * @type {Array}
 		 */
 		this.wall = [];
@@ -136,6 +147,8 @@ Langtris.prototype = {
 		// сохраняю порядковые номера
 		this.chosen_words = [];
 
+		// массив айдишников слов, которые окажутся на игровом поле сразу
+		this.initial_pairs = [[], []];
 
 		/**
 		 * заполняю this.initial_pairs - массив айдишников слов, которые окажутся на игровом поле сразу
@@ -148,8 +161,9 @@ Langtris.prototype = {
 					? n
 					: unique_random(random(0, l), l);
 			};
+
 			for (i = 0; i < obj.conf.initial_rows_fill * obj.conf.wall_column_count / 2; i++){
-				initial_pairs.push(unique_random(random(0, obj.dict_length), obj.dict_length));
+				initial_pairs.push(unique_random(random(0, obj.dict_length - 1), obj.dict_length - 1));
 			}
 
 //			obj.initial_pairs = [initial_pairs, initial_pairs];
@@ -203,9 +217,9 @@ Langtris.prototype = {
 				word_id = obj.initial_pairs[lang_id][z];
 				obj.initial_pairs[lang_id].splice(z, 1);
 
-				console.log("проход " + ii, jj);
-				console.log(obj.initial_pairs[0]);
-				console.log(obj.initial_pairs[1]);
+//				console.log(jj + 1, ii + 1, z, word_id, lang.dict[word_id]);
+//				console.log(obj.initial_pairs[0]);
+//				console.log(obj.initial_pairs[1]);
 			} else {
 				//все слова минус использованные
 				var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
@@ -250,6 +264,7 @@ Langtris.prototype = {
 			word: word
 		};
 	},
+
 
 	// игра проиграна
 	loss: function(){
@@ -319,6 +334,17 @@ Langtris.prototype = {
 			loss = false;
 
 		column = random(0, this.conf.wall_column_count - 1);
+
+		var t = [];
+		for (var i = 0; i < obj.conf.wall_column_count; i ++){
+			t.push(obj.wall[i].length);
+		}
+		var tm = Math.max.apply({}, t);
+		var t2 = _.without(t, tm);
+		var t2m = Math.max.apply({}, t2);
+		var t3 = _.without(t2, t2m);
+
+		console.log(t, t2, t3);
 
 		// если если еще есть куда падать в этой колонке
 		if (this.wall[column].length < this.conf.wall_row_count){
@@ -477,7 +503,6 @@ Brick.prototype = {
 		var speed = 50;
 		var op = 0;
 
-		this.obj.wall[this.column].splice(this.row, 1);
 		this.elem.animate({opacity: op}, speed, function(){
 			elem.animate({opacity: 1}, speed, function(){
 				elem.animate({opacity: op}, speed, function(){
@@ -486,14 +511,13 @@ Brick.prototype = {
 							elem.animate({opacity: 1}, speed, function(){
 								elem.remove();
 								me.obj.wall[me.column].splice(me.row, 1);
-								me.obj.fall_column(me.column);;
+								me.obj.fall_column(me.column);
 							})
 						})
 					})
 				})
 			})
 		});
-
 
 //		elem.remove();
 //		me.obj.wall[me.column].splice(me.row, 1);
