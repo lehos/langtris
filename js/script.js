@@ -1,4 +1,8 @@
-//todo вначале все пары - dode
+// --allow-file-access-from-files
+// alexey-stratan.ftp.narod.ru
+// /langtris
+// alexey-stratan
+// http://alexey-stratan.ftp.narod.ru/langtris/
 
 //todo колонка для следующего слова выбирается так: исключаем две самые длинные колонки, и рандомно в остальные
 
