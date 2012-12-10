@@ -47,9 +47,10 @@ header, nav, article, footer, section {
 }
 
 #layout{
-	width:962px;
-	margin:auto;
-	position:relative;
+	width: 962px;
+	margin: auto;
+	position: relative;
+	padding-bottom: 70px;
 }
 #header{
 	border-bottom:1px solid #515151;
@@ -143,6 +144,7 @@ header, nav, article, footer, section {
 
 	.level{
 		margin-right:40px;
+		position: relative;
 	}
 		.level > span{
 			display:inline-block;
@@ -151,7 +153,56 @@ header, nav, article, footer, section {
 			border-bottom:1px dashed #515151;
 			line-height: 0.8;
 			display: inline-block;
+			cursor: pointer;
 		}
+			.level-changer-toggler:hover{
+				color:#be7551;
+				border-color:#be7551;
+			}
+		.levels{
+			position: absolute;
+			top: 100%;
+			left: -75px;
+			margin: 10px 0 0 0;
+			border: 1px solid #515151;
+			border-radius: 6px;
+			padding: 1px 7px;
+			white-space: nowrap;
+			background: #fff;
+			font-size: 0;
+			box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+			display: none;
+		}
+			.levels .arr{
+				width: 18px;
+				height: 11px;
+				position: absolute;
+				top: -11px;
+				left: 50%;
+				margin: 0 0 0 -9px;
+				background: url(../img/sprite.png) 0 -37px no-repeat;
+			}
+			.levels-item{
+				display: inline-block;
+				padding: 3px 5px 0 5px;
+				height: 16px;
+				font-size: 17px;
+				border-left: 1px solid #fff;
+			}
+			.levels-item:not(.disabled):hover{
+				cursor: pointer;
+				background: #515151;
+				color: #fff;
+			}
+			.levels-item.current{
+				background: #515151;
+				color: #fff;
+				cursor: default;
+			}
+			.levels-item.disabled{
+				color: #ccc;
+				cursor: default;
+			}
 
 	.pause{
 		margin-right: 40px;

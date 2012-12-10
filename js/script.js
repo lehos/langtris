@@ -26,25 +26,28 @@ function random_except(from, to, except){
 	}
 }
 
-Array.prototype.random = function(){
-	return this[random(0, this.length - 1)];
-};
+function arr_random(arr){
+	return arr[random(0, arr.length - 1)];
+}
 
 var Langtris = function(){
 	var obj = this;
 
 //	TODO учитывать аргументы, переданные в объект
 	this.conf = {
-		en_dict: "dicts/en.dic",
+		dict: "dicts/en-ru.dic",
+
+		// deprecated
+		en_dict: "dicts/2en.dic",
 		ru_dict: "dicts/ru.dic",
 
-		crop: 40,
+		crop: 50,
 
 		fall_column_speed: 150,
 		fall_speed: 1000,
-		fall_delay: 2000,
+		fall_delay: 1000,
 
-		initial_rows_fill: 2,
+		initial_rows_fill: 6,
 
 		wall_selector: "#wall",
 		brick_template: "#template-brick",
@@ -55,8 +58,13 @@ var Langtris = function(){
 		brick_w: 160,
 		brick_h: 41,
 
-		bottom_init: 505
+		bottom_init: 505,
+
+		// количество слов в уровне (в одном словаре)
+		level_length: 100
 	};
+
+	this.level = 1;
 
 	this.$wall = $(this.conf.wall_selector);
 	this.$brick_template = $(this.conf.brick_template);
@@ -67,9 +75,6 @@ var Langtris = function(){
 	//второй и третий - номера уже использованных слов
 	this.used_words = [[], [], []];
 
-
-	//  тут буду хранить словари, заполняю в методе load_dicts()
-	this.langs = [];
 
 	// переменная-помощник для выщелкивания слов
 	// хранит в себе ссылки на соотв. им объекты
@@ -101,34 +106,53 @@ Langtris.prototype = {
 	load_dicts: function(){
 		var obj = this;
 
-		$.when($.get("dicts/en.dic"), $.get("dicts/ru.dic")).done(function(args1, args2){
+//		$.when($.get("dicts/en.dic"), $.get("dicts/ru.dic")).done(function(args1, args2){
+
+		// скачиваю с сервера файл-словарь и формирую из него два массива со словами
+		$.get(obj.conf.dict, function(data){
+			var raw_dict = data.split("\n");
+			var en_dict = [];
+			var ru_dict = [];
+			for (var i = 0; i < raw_dict.length; i++){
+				var s = raw_dict[i].split(" | ");
+				en_dict.push(s[0]);
+				ru_dict.push(s[1]);
+			}
+
+			obj.langs = [];
+
 			obj.langs.push({
 				name: "en",
-				dict: args1[0].split("\n")
+				dict: en_dict
 			});
 
 			obj.langs.push({
 				name: "ru",
-				dict: args2[0].split("\n")
+				dict: ru_dict
 			});
 
-			//уменьшаю словари
+
+			//уменьшаю словари (временное явление, до появление уровней)
 			if (obj.conf.crop != undefined){
 				for (var i = 0; i < 2; i++){
 					obj.langs[i].dict.splice(obj.conf.crop, obj.langs[i].dict.length - obj.conf.crop);
 				}
 			}
 
-			//запомниаю длину словаря
+			//запоминаю длину словаря
 			obj.dict_length = obj.langs[0].dict.length;
 
 			obj.used_words[0] = _.range(obj.langs[0].dict.length);
 
-//			console.log("словари загружены");
+			console.log("словари загружены");
 
 			// запускаем игру
 			obj.init();
 		});
+	},
+
+	build_level: function(level){
+
 	},
 
 	init: function(){
@@ -554,5 +578,9 @@ Brick.prototype = {
 
 
 $(document).ready(function(){
-	l = new Langtris();
+	window.langtris = new Langtris();
+
+	$(".level-changer-toggler").click(function(){
+		$(".levels").toggle();
+	});
 });

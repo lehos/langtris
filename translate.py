@@ -46,37 +46,28 @@ def translate(text, lang, format='plain'):
 	return json.loads(js)['text'][0]
 
 def main():
-	min_length = 2
+	min_length = 3
 	f_en_source = open('dicts/en-source.txt', 'r')
-	f_en_result = open('dicts/en-result.txt', 'w')
-	f_ru_result = codecs.open('dicts/ru-result.txt', 'w', 'utf-8')
-	f_en_ru = codecs.open('dicts/en-ru-result.txt', 'w', 'utf-8')
+	f_en_ru = codecs.open('dicts/en-ru.txt', 'w', 'utf-8')
+	en_except_parts = ['conj', 'pron', 'adv', 'prep', 'infinitive-marker', 'modal', 'det']
 
-	lines_en = []
-	lines_ru = []
-	count = 0
+	lines_en_ru = []
+#	counter = 0
 	for line in f_en_source:
 		words = line.split(' ')
 		word_en = words[2]
 		word_type = words[3][:-1]
-		if len(word_en) > min_length and word_type != 'conj':
-			count += 1
+		if len(word_en) >= min_length and (word_type not in en_except_parts):
 			word_ru = translate(word_en, 'en-ru')
-			lines_en.append(word_en)
-			lines_ru.append(word_ru)
+			if len(word_ru) >= min_length:
+#				counter += 1
+				lines_en_ru.append(word_en + ' | ' + word_ru)
 
-	f_ru_result.write('\n'.join(lines_ru))
-	f_ru_result.close()
-	f_en_result.write('\n'.join(lines_en))
-	f_en_result.close()
+	f_en_ru.write('\n'.join(lines_en_ru))
+	f_en_ru.close()
 	f_en_source.close()
 
-def merge():
-	f_en_result = open('dicts/en-result.txt', 'r')
-	f_ru_result = open('dicts/ru-result.txt', 'r')
-	f_en_ru = codecs.open('dicts/en-ru-result.txt', 'w', 'utf-8')
 
 
 
-#main()
-merge()
+main()
