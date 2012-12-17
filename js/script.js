@@ -5,6 +5,7 @@
 // http://alexey-stratan.ftp.narod.ru/langtris/
 
 //todo колонка для следующего слова выбирается так: исключаем две самые длинные колонки, и рандомно в остальные
+//todo не показывать последнее слово перед проигрышем
 
 function random(from, to){
 	return Math.floor(Math.random() * (to - from + 1) + from);
@@ -37,17 +38,13 @@ var Langtris = function(){
 	this.conf = {
 		dict: "dicts/en-ru.dic",
 
-		// deprecated
-		en_dict: "dicts/2en.dic",
-		ru_dict: "dicts/ru.dic",
-
 		crop: 50,
 
 		fall_column_speed: 150,
-		fall_speed: 1000,
-		fall_delay: 1000,
+		fall_speed: 100,
+		fall_delay: 100,
 
-		initial_rows_fill: 6,
+		initial_rows_fill: 9,
 
 		wall_selector: "#wall",
 		brick_template: "#template-brick",
@@ -114,12 +111,14 @@ Langtris.prototype = {
 			var en_dict = [];
 			var ru_dict = [];
 			for (var i = 0; i < raw_dict.length; i++){
+				
 				var s = raw_dict[i].split(" | ");
 				en_dict.push(s[0]);
 				ru_dict.push(s[1]);
 			}
 
 			obj.langs = [];
+			obj.dicts = [];
 
 			obj.langs.push({
 				name: "en",
@@ -131,6 +130,15 @@ Langtris.prototype = {
 				dict: ru_dict
 			});
 
+			obj.dicts.push({
+				name: "en",
+				dict: en_dict
+			});
+
+			obj.dicts.push({
+				name: "ru",
+				dict: ru_dict
+			});
 
 			//уменьшаю словари (временное явление, до появление уровней)
 			if (obj.conf.crop != undefined){
@@ -170,7 +178,6 @@ Langtris.prototype = {
 			this.wall[i] = [];
 		}
 
-		// todo может это объявление надо перенести в конструктор
 		// массив с выпавшими словами, которые уже показвать не надо.
 		// сохраняю порядковые номера
 		this.chosen_words = [];
@@ -178,9 +185,7 @@ Langtris.prototype = {
 		// массив айдишников слов, которые окажутся на игровом поле сразу
 		this.initial_pairs = [[], []];
 
-		/**
-		 * заполняю this.initial_pairs - массив айдишников слов, которые окажутся на игровом поле сразу
-		 */
+		// заполняю его
 		var fill_initial_pairs = function(){
 			var initial_pairs = [];
 
@@ -372,7 +377,7 @@ Langtris.prototype = {
 		var t2m = Math.max.apply({}, t2);
 		var t3 = _.without(t2, t2m);
 
-		console.log(t, t2, t3);
+//		console.log(t, t2, t3);
 
 		// если если еще есть куда падать в этой колонке
 		if (this.wall[column].length < this.conf.wall_row_count){
@@ -386,12 +391,12 @@ Langtris.prototype = {
 				for (var i = 0; i < obj.conf.wall_column_count; i++){
 					if (obj.wall[i].length < obj.conf.wall_row_count){
 						column = i;
-//						console.log("хотел упасть на " + c + " проход " + i, obj.wall[i].length);
+						row = obj.wall[i].length;
 						return;
 					} else {
 						if (i == obj.conf.wall_column_count - 1){
-//							console.log("хотел упасть на " + c + " проход " + i);
 							obj.loss();
+							return ({loss: true});
 						}
 					}
 				}
@@ -427,6 +432,7 @@ Langtris.prototype = {
 
 
 var Brick = function(obj, params){
+
 	this.obj = obj;
 	var me = this;
 
