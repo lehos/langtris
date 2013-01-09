@@ -82,13 +82,18 @@ var Langtris = function(){
 			$(".debug-" + item).val(this.conf[item]);
 		}
 
-		$(".debug-ok").click(function(){
+		var change_conf = function(){
 			$(".debug input:text").each(function(){
 				var prop = $(this).attr("class").substr(6);
 				obj.conf[prop] = $(this).val();
 			});
 
 			obj.start_new_level();
+		};
+
+		$(".debug").submit(function(){
+			change_conf();
+			return false;
 		});
 	}
 
@@ -205,6 +210,7 @@ Langtris.prototype = {
 			var k = obj.conf.max_level;
 
 			var l = obj.conf.level_length;
+
 			var l1, l2, l3;
 
 			if (level <= l / 2){
@@ -288,6 +294,8 @@ Langtris.prototype = {
 			en_dict.push(obj.dicts[0].dict[r]);
 			ru_dict.push(obj.dicts[1].dict[r]);
 		}
+
+		console.log(en_dict.length);
 
 		obj.level_dicts[0] = {
 			name: "en",
@@ -604,8 +612,6 @@ var Brick = function(obj, params){
 	this.bottom_target = obj.conf.brick_h * this.row;
 	this.bottom_init = obj.conf.bottom_init;
 
-	// console.log(this);
-
 	//	рендерим кирпичик
 	this.elem = $($(obj.$brick_template.render(this)));
 
@@ -633,8 +639,6 @@ Brick.prototype = {
 		var speed = (params != undefined && params.fall_column)
 			?  this.obj.conf.fall_column_speed
 			: this.obj.conf.fall_speed;
-
-		console.log(speed);
 
 		this.elem.animate({bottom: this.bottom_target + "px"}, speed * 1, "linear", function(){
 			$(this).addClass("stable");
