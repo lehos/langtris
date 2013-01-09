@@ -52,16 +52,6 @@
 
 					<div class="levels">
 						<div class="arr"></div>
-
-						<span class="levels-item current">1</span>
-						<span class="levels-item disabled">2</span>
-						<span class="levels-item disabled">3</span>
-						<span class="levels-item disabled">4</span>
-						<span class="levels-item disabled">5</span>
-						<span class="levels-item disabled">6</span>
-						<span class="levels-item disabled">7</span>
-						<span class="levels-item disabled">8</span>
-						<span class="levels-item disabled">9</span>
 					</div>
 				</div>
 
@@ -79,13 +69,40 @@
 				</div>
 			</div>
 
-            <div class="loss">Капец!</div>
+            <div class="loss">Увы, уровень не пройден =(</div>
+            <div class="level-complete">Ура, уровень пройден! </div>
 		</div>
 
 
 		<div id="wall-wrap">
 			<div id="wall"></div>
 		</div>
+
+		<form class="debug">
+			<dl class="clearfix">
+				<dt>Количество пар слов в уровне</dt>
+				<dd>
+					<input type="text" class="debug-level_length">
+				</dd>
+
+				<dt>Количество изначально заполненных строк</dt>
+				<dd>
+					<input type="text" class="debug-initial_rows_fill">
+				</dd>
+
+				<dt>Скорость выпадения слов</dt>
+				<dd>
+					<input type="text" class="debug-fall_speed">
+				</dd>
+
+				<dt>Таймаут выпадения слов</dt>
+				<dd>
+					<input type="text" class="debug-fall_delay">
+				</dd>
+			</dl>
+
+			<input type="button" value="Применить" class="debug-ok">
+		</form>
 	</div>
 
     <div id="curtain">

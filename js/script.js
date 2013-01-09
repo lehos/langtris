@@ -7,6 +7,12 @@
 //todo колонка для следующего слова выбирается так: исключаем две самые длинные колонки, и рандомно в остальные
 //todo не показывать последнее слово перед проигрышем
 
+/**
+ * возвращает случайное число в диапазоне [from, to]
+ * @param {Number} from
+ * @param {Number} to
+ * @return {Number}
+ */
 function random(from, to){
 	return Math.floor(Math.random() * (to - from + 1) + from);
 }
@@ -38,13 +44,11 @@ var Langtris = function(){
 	this.conf = {
 		dict: "dicts/en-ru.dic",
 
-		crop: 50,
-
 		fall_column_speed: 150,
 		fall_speed: 100,
 		fall_delay: 100,
 
-		initial_rows_fill: 9,
+		initial_rows_fill: 2,
 
 		wall_selector: "#wall",
 		brick_template: "#template-brick",
@@ -57,11 +61,37 @@ var Langtris = function(){
 
 		bottom_init: 505,
 
+		// максимальный уровень (one-based)
+		max_level: 100,
+
 		// количество слов в уровне (в одном словаре)
-		level_length: 100
+		level_length: 10,
+
+		// номер уровня, с которого начинаем (one-based)
+		level: 1,
+
+		// соклько уровней пройдено
+		levels_complete: 20
 	};
 
-	this.level = 1;
+	this.level = this.conf.level;
+
+	obj.debug = true;
+	if (obj.debug = true){
+		for (var item in this.conf){
+			$(".debug-" + item).val(this.conf[item]);
+		}
+
+		$(".debug-ok").click(function(){
+			$(".debug input:text").each(function(){
+				var prop = $(this).attr("class").substr(6);
+				obj.conf[prop] = $(this).val();
+			});
+
+			obj.start_new_level();
+		});
+	}
+
 
 	this.$wall = $(this.conf.wall_selector);
 	this.$brick_template = $(this.conf.brick_template);
@@ -71,6 +101,7 @@ var Langtris = function(){
 	//первый массив - range от нуля до кол-ва слова в словаре
 	//второй и третий - номера уже использованных слов
 	this.used_words = [[], [], []];
+	this.used_words[0] = _.range(this.conf.level_length);
 
 
 	// переменная-помощник для выщелкивания слов
@@ -87,13 +118,32 @@ var Langtris = function(){
 	});
 
 	this.$play.click(function(){
-		obj.play();
+		obj.start_rain();
 	});
+
 
 	this.$replay.click(function(){
-		obj.replay();
+		obj.start_new_level();
 	});
 
+
+	this.$levels = $(".levels");
+	this.$level_current = $(".level-current");
+
+	for (var i = 1; i <= this.conf.max_level; i++){
+		var cls = (i <= this.conf.levels_complete) ? '' : 'disabled';
+		// todo шаблонизировать
+		this.$levels.append('<span class="levels-item level-' + i + ' ' + cls + '" data-level="' + i + '">' + i + '</span>')
+	}
+
+	this.$levels.find(".levels-item").click(function(){
+		var $me = $(this);
+		if (!$me.hasClass("disabled") && !$me.hasClass("current")){
+			obj.level = $me.data("level");
+			obj.start_new_level();
+			obj.$levels.hide();
+		}
+	});
 
 	// точка входа
 	this.load_dicts();
@@ -111,24 +161,13 @@ Langtris.prototype = {
 			var en_dict = [];
 			var ru_dict = [];
 			for (var i = 0; i < raw_dict.length; i++){
-				
 				var s = raw_dict[i].split(" | ");
 				en_dict.push(s[0]);
 				ru_dict.push(s[1]);
 			}
 
-			obj.langs = [];
 			obj.dicts = [];
-
-			obj.langs.push({
-				name: "en",
-				dict: en_dict
-			});
-
-			obj.langs.push({
-				name: "ru",
-				dict: ru_dict
-			});
+			obj.level_dicts = [];
 
 			obj.dicts.push({
 				name: "en",
@@ -140,33 +179,137 @@ Langtris.prototype = {
 				dict: ru_dict
 			});
 
-			//уменьшаю словари (временное явление, до появление уровней)
-			if (obj.conf.crop != undefined){
-				for (var i = 0; i < 2; i++){
-					obj.langs[i].dict.splice(obj.conf.crop, obj.langs[i].dict.length - obj.conf.crop);
-				}
-			}
-
-			//запоминаю длину словаря
-			obj.dict_length = obj.langs[0].dict.length;
-
-			obj.used_words[0] = _.range(obj.langs[0].dict.length);
+			obj.dict_length = obj.dicts[0].dict.length;
 
 			console.log("словари загружены");
 
 			// запускаем игру
-			obj.init();
+			obj.init_level();
 		});
 	},
 
-	build_level: function(level){
-
-	},
-
-	init: function(){
-		console.log("init");
+	build_level_dicts: function(){
+		console.log("build_level_dicts");
 
 		var obj = this;
+
+		// удобней оперировать с null-based уровнем
+		var level = obj.level - 1;
+
+		// todo вынести в инициализацию при загрузке от сих
+			var n = obj.dict_length;
+			var n1 = Math.floor(n / 3);
+			var n2 = n1 * 2;
+			var n3 = n1 * 3;
+
+			var k = obj.conf.max_level;
+
+			var l = obj.conf.level_length;
+			var l1, l2, l3;
+
+			if (level <= l / 2){
+				l1 = Math.round(l * (1 - 2 * level / k));
+				l2 = Math.round(2 * l * level / k);
+				l3 = 0
+
+			} else {
+				l1 = 0;
+				l2 = Math.round(2 * l * (1 - level / k));
+				l3 = Math.round(l * (2 * level / k - 1));
+			}
+
+
+			var en_dict = [];
+			var ru_dict = [];
+		// до сих
+
+		var used = [];
+		var r = 0;
+
+		// заполняем уровень из первой части словаря
+		for (var i = 0; i < l1; i++){
+			r = random_except(0, n1, used);
+			// todo починить эту херь c undefined
+			if (r == undefined){
+				r = random_except(0, n1, used);
+				if (r == undefined){
+					r = random_except(0, n1, used);
+					if (r == undefined){
+						r = random_except(0, n1, used);
+						console.log("todo: починить эту херь!!!");
+					}
+				}
+			}
+
+			used.push(r);
+			en_dict.push(obj.dicts[0].dict[r]);
+			ru_dict.push(obj.dicts[1].dict[r]);
+		}
+
+		// заполняем уровень из второй части словаря
+		used = [];
+		for (var i = 0; i < l2; i++){
+			r = random_except(n1, n2, used);
+			// todo починить эту херь c undefined
+			if (r == undefined){
+				r = random_except(n1, n2, used);
+				if (r == undefined){
+					r = random_except(n1, n2, used);
+					if (r == undefined){
+						r = random_except(n1, n2, used);
+						console.log("todo: починить эту херь!!!");
+					}
+				}
+			}
+
+			used.push(r);
+			en_dict.push(obj.dicts[0].dict[r]);
+			ru_dict.push(obj.dicts[1].dict[r]);
+		}
+
+		// заполняем уровень из третьей части словаря
+		used = [];
+		for (var i = 0; i < l3; i++){
+			console.log(3);
+			r = random_except(n2, n3, used);
+			// todo починить эту херь c undefined
+			if (r == undefined){
+				r = random_except(n2, n3, used);
+				if (r == undefined){
+					r = random_except(n2, n3, used);
+					if (r == undefined){
+						r = random_except(n2, n3, used);
+						console.log("todo: починить эту херь!!!");
+					}
+				}
+			}
+
+			used.push(r);
+			en_dict.push(obj.dicts[0].dict[r]);
+			ru_dict.push(obj.dicts[1].dict[r]);
+		}
+
+		obj.level_dicts[0] = {
+			name: "en",
+			dict: en_dict
+		};
+
+		obj.level_dicts[1] = {
+			name: "ru",
+			dict: ru_dict
+		};
+	},
+
+	init_level: function(){
+		console.log("init level " + this.level);
+
+		var obj = this;
+
+		obj.build_level_dicts();
+
+		obj.$levels.find(".current").removeClass("current");
+		obj.$levels.find(".level-" + obj.level).removeClass("disabled").addClass("current");
+		obj.$level_current.text(obj.level);
 
 		/**
 		 * массив колонок, каждая из которых,
@@ -196,10 +339,8 @@ Langtris.prototype = {
 			};
 
 			for (i = 0; i < obj.conf.initial_rows_fill * obj.conf.wall_column_count / 2; i++){
-				initial_pairs.push(unique_random(random(0, obj.dict_length - 1), obj.dict_length - 1));
+				initial_pairs.push(unique_random(random(0, obj.conf.level_length - 1), obj.conf.level_length - 1));
 			}
-
-//			obj.initial_pairs = [initial_pairs, initial_pairs];
 
 			for (var i = 0; i < initial_pairs.length; i++){
 				obj.initial_pairs[0].push(initial_pairs[i]);
@@ -208,19 +349,19 @@ Langtris.prototype = {
 		}();
 
 
-
 		// половина поля заполняется словами сразу
 		for (i = 0; i < this.conf.initial_rows_fill; i++){
 			for (var j = 0; j < this.conf.wall_column_count; j++){
 				var b = new Brick(this, $.extend({row: i, column: j}, this.choose_word({initial: true}, i, j)));
-//				console.log(b);
 
 				b.init_show();
 			}
 		}
 
-		this.play();
+		this.start_rain();
 	},
+
+
 
 
 	/**
@@ -234,7 +375,7 @@ Langtris.prototype = {
 		var initial = (params != undefined && params.initial) ? true : false;
 
 		var lang_id = random(0, 1);
-		var lang = this.langs[lang_id];
+		var lang = this.level_dicts[lang_id];
 		var word_id;
 		var word;
 
@@ -243,16 +384,13 @@ Langtris.prototype = {
 				// если один словарь пуст, берем другой
 				if (obj.initial_pairs[lang_id].length == 0) {
 					lang_id = Math.abs(lang_id - 1);
-					lang = obj.langs[lang_id];
+					lang = obj.level_dicts[lang_id];
 				}
 
 				var z = random(0, obj.initial_pairs[lang_id].length - 1);
 				word_id = obj.initial_pairs[lang_id][z];
 				obj.initial_pairs[lang_id].splice(z, 1);
 
-//				console.log(jj + 1, ii + 1, z, word_id, lang.dict[word_id]);
-//				console.log(obj.initial_pairs[0]);
-//				console.log(obj.initial_pairs[1]);
 			} else {
 				//все слова минус использованные
 				var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
@@ -262,31 +400,27 @@ Langtris.prototype = {
 
 			//достаю слово из словаря
 			word = lang.dict[word_id];
-//			console.log(word_id, word, obj.used_words[lang_id + 1], diff);
 
 			//добавляю этот айдишник в использованные
 			obj.used_words[lang_id + 1].push(word_id);
 		};
 		
-//		console.log(this.used_words[lang_id + 1].length, this.dict_length);
-
-
 		// если в этом словаре еще остались неиспользованные слова
-		if (this.used_words[lang_id + 1].length < this.dict_length){
+		if (this.used_words[lang_id + 1].length < this.conf.level_length){
 			choose_word();
 		} else {
 			// смотрим в другой словарь
 			lang_id = Math.abs(lang_id - 1);
-			lang = this.langs[lang_id];
+			lang = this.level_dicts[lang_id];
 
 			// если в нем что-то есть
-			if (this.used_words[lang_id + 1].length < this.dict_length){
+			if (this.used_words[lang_id + 1].length < this.conf.level_length){
 				choose_word();
 			// если нет
 			} else {
 				this.stop_rain();
 
-				console.log("словари закончились");
+				console.log("словари в уровне закончились");
 			}
 		}
 
@@ -298,13 +432,25 @@ Langtris.prototype = {
 		};
 	},
 
+	start_rain: function(){
+		console.log("play");
 
-	// игра проиграна
-	loss: function(){
-		console.log("loss");
-		
-		this.stop_rain();
-		$(".loss").show();
+		this.$play.hide();
+		this.$curtain.hide();
+
+		var obj = this;
+		this.rain_interval = setInterval(function(){
+			var word = obj.choose_word();
+			// не показываем первый кирпич-призрак сразу после того, как словари опустели
+			if (word.word != undefined) {
+				var b = new Brick(obj, $.extend({}, obj.calc_destination(), word));
+				b.fall();
+			}
+		}, obj.conf.fall_delay);
+	},
+
+	stop_rain: function(){
+		clearInterval(this.rain_interval);
 	},
 
 	pause: function(){
@@ -316,30 +462,43 @@ Langtris.prototype = {
 		this.stop_rain();
 	},
 
-	stop_rain: function(){
-		clearInterval(this.rain_interval);
+	// игра проиграна
+	loss: function(){
+		console.log("loss");
+		
+		this.stop_rain();
+		$(".loss").show();
 	},
 
-	play: function(){
-		console.log("play");
-
-		this.$play.hide();
-		this.$curtain.hide();
-
+	check_level_complete: function(){
 		var obj = this;
-		this.rain_interval = setInterval(function(){
-			var b = new Brick(obj, $.extend({}, obj.calc_destination(), obj.choose_word()));
-			b.fall();
-		}, obj.conf.fall_delay);
+		var flag = true;
+		for (var i = 0; i < this.wall.length; i++){
+			if (this.wall[i].length != 0){
+				flag = false;
+			}
+		}
+		console.log(this.wall);
+		console.log(flag);
+
+		if (flag){
+			console.log("слова закончились, уровень пройден");
+
+			$(".level-complete").show().animate({opacity: 0}, 4000, function(){
+				$(this).hide();
+				obj.level++;
+				obj.start_new_level()
+			});
+		}
 	},
 
-	replay: function(){
-		console.log("replay");
+	start_new_level: function(){
+		console.log("start_new_level");
 		
 		clearInterval(this.rain_interval);
 		this.clear_wall();
 
-		this.init();
+		this.init_level();
 	},
 
 	clear_wall: function(){
@@ -376,8 +535,6 @@ Langtris.prototype = {
 		var t2 = _.without(t, tm);
 		var t2m = Math.max.apply({}, t2);
 		var t3 = _.without(t2, t2m);
-
-//		console.log(t, t2, t3);
 
 		// если если еще есть куда падать в этой колонке
 		if (this.wall[column].length < this.conf.wall_row_count){
@@ -477,7 +634,9 @@ Brick.prototype = {
 			?  this.obj.conf.fall_column_speed
 			: this.obj.conf.fall_speed;
 
-		this.elem.animate({bottom: this.bottom_target + "px"}, speed, "linear", function(){
+		console.log(speed);
+
+		this.elem.animate({bottom: this.bottom_target + "px"}, speed * 1, "linear", function(){
 			$(this).addClass("stable");
 		});
 	},
@@ -506,11 +665,12 @@ Brick.prototype = {
 		if (matcher[o_lang_id] != undefined){
 			// если выбрано слово-перевод
 			if (matcher[lang_id].word_id == matcher[o_lang_id].word_id){
-//				console.log(this.column, this.obj.wall[this.column]);
 				this.remove();
 				matcher[o_lang_id].remove();
 				matcher.splice(0, 2);
-//				console.log(this.column, this.obj.wall[this.column]);
+
+				// вызываем проверку на выигрыш уровня
+				this.obj.check_level_complete();
 
 			// если выбраны разные слова
 			} else {
@@ -534,28 +694,13 @@ Brick.prototype = {
 		var me = this;
 		var elem = this.elem;
 
-		var speed = 50;
-		var op = 0;
+		var speed = 100;
 
-		this.elem.animate({opacity: op}, speed, function(){
-			elem.animate({opacity: 1}, speed, function(){
-				elem.animate({opacity: op}, speed, function(){
-					elem.animate({opacity: 1}, speed, function(){
-						elem.animate({opacity: 0}, speed, function(){
-							elem.animate({opacity: 1}, speed, function(){
-								elem.remove();
-								me.obj.wall[me.column].splice(me.row, 1);
-								me.obj.fall_column(me.column);
-							})
-						})
-					})
-				})
-			})
+		this.elem.animate({height: 0, opacity: 0}, speed, function(){
+			elem.remove();
 		});
-
-//		elem.remove();
-//		me.obj.wall[me.column].splice(me.row, 1);
-//		me.obj.fall_column(me.column);
+		me.obj.wall[me.column].splice(me.row, 1);
+		me.obj.fall_column(me.column);
 	}
 };
 
