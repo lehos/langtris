@@ -45,10 +45,10 @@ var Langtris = function(){
 		dict: "dicts/en-ru.dic",
 
 		fall_column_speed: 150,
-		fall_speed: 100,
-		fall_delay: 100,
+		fall_speed: 1000,
+		fall_delay: 2000,
 
-		initial_rows_fill: 2,
+		initial_rows_fill: 6,
 
 		wall_selector: "#wall",
 		brick_template: "#template-brick",
@@ -65,7 +65,7 @@ var Langtris = function(){
 		max_level: 100,
 
 		// количество слов в уровне (в одном словаре)
-		level_length: 10,
+		level_length: 100,
 
 		// номер уровня, с которого начинаем (one-based)
 		level: 1,
