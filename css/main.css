@@ -37,7 +37,9 @@ a img{border:none;}
 header, nav, article, footer, section {
 	display: block;
 }
-
+.ar{
+	text-align: right;
+}
 
 .pseudo-link{
 	display:inline-block;

@@ -102,13 +102,6 @@ var Langtris = function(){
 	this.$brick_template = $(this.conf.brick_template);
 
 
-	//переменная-помощник для выбора слов, чтоб они не повторялись
-	//первый массив - range от нуля до кол-ва слова в словаре
-	//второй и третий - номера уже использованных слов
-	this.used_words = [[], [], []];
-	this.used_words[0] = _.range(this.conf.level_length);
-
-
 	// переменная-помощник для выщелкивания слов
 	// хранит в себе ссылки на соотв. им объекты
 	this.matcher = [];
@@ -295,8 +288,6 @@ Langtris.prototype = {
 			ru_dict.push(obj.dicts[1].dict[r]);
 		}
 
-		console.log(en_dict.length);
-
 		obj.level_dicts[0] = {
 			name: "en",
 			dict: en_dict
@@ -314,6 +305,14 @@ Langtris.prototype = {
 		var obj = this;
 
 		obj.build_level_dicts();
+
+
+		//переменная-помощник для выбора слов, чтоб они не повторялись
+		//первый массив - range от нуля до кол-ва слова в словаре
+		//второй и третий - номера уже использованных слов
+		obj.used_words = [[], [], []];
+		obj.used_words[0] = _.range(obj.conf.level_length);
+
 
 		obj.$levels.find(".current").removeClass("current");
 		obj.$levels.find(".level-" + obj.level).removeClass("disabled").addClass("current");
@@ -454,6 +453,7 @@ Langtris.prototype = {
 				var b = new Brick(obj, $.extend({}, obj.calc_destination(), word));
 				b.fall();
 			}
+
 		}, obj.conf.fall_delay);
 	},
 
