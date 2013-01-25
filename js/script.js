@@ -54,9 +54,9 @@ var Langtris = function(){
 		brick_template: "#template-brick",
 
 		wall_row_count: 12,
-		wall_column_count: 6,
+		wall_column_count: 4,
 
-		brick_w: 160,
+		brick_w: 176,
 		brick_h: 41,
 
 		bottom_init: 505,
