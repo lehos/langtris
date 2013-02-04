@@ -237,12 +237,12 @@ header, nav, article, footer, section {
 }
 
 .loss{
-	position:absolute;
-	color:red;
-	font-size:40px;
-	left:50%;
-	top:20px;
-	display:none;
+	position: absolute;
+	color: red;
+	font-size: 20px;
+	left: 0;
+	top: 20px;
+	display: none;
 }
 .level-complete{
 	position: absolute;

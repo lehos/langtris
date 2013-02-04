@@ -18,7 +18,7 @@ function random(from, to){
 }
 
 /**
- * вовзаращает случайное число в диапазоне from to исключая указаннные в массиве except
+ * вовзаращает случайное число в диапазоне from to, исключая указаннные в массиве except
  * @param {number} from
  * @param {number} to
  * @param {Array} except
@@ -33,7 +33,8 @@ function random_except(from, to, except){
 	}
 }
 
-function arr_random(arr){
+// todo засунуть это в локальный неймспейс
+function random_arr(arr){
 	return arr[random(0, arr.length - 1)];
 }
 
@@ -47,6 +48,8 @@ var Langtris = function(){
 		fall_column_speed: 150,
 		fall_speed: 1000,
 		fall_delay: 2000,
+//		fall_speed: 500,
+//		fall_delay: 500,
 
 		initial_rows_fill: 6,
 
@@ -486,8 +489,6 @@ Langtris.prototype = {
 				flag = false;
 			}
 		}
-		console.log(this.wall);
-		console.log(flag);
 
 		if (flag){
 			console.log("слова закончились, уровень пройден");
@@ -525,49 +526,45 @@ Langtris.prototype = {
 	},
 
 
-	// расчитываем колонку и строку, где должен оказаться кирипич
-	// параллельно ловим проигрыш уровня
+	// расчитываю колонку и строку, где должен оказаться кирипич
+	// параллельно ловлю проигрыш уровня
 	calc_destination: function(){
 		var obj = this,
 			column,
 			row,
 			loss = false;
 
-		column = random(0, this.conf.wall_column_count - 1);
 
-		var t = [];
-		for (var i = 0; i < obj.conf.wall_column_count; i ++){
-			t.push(obj.wall[i].length);
+ 		var len_arr = [];
+
+		for (var i = 0; i < obj.wall.length; i++){
+			len_arr.push(obj.wall[i].length);
 		}
-		var tm = Math.max.apply({}, t);
-		var t2 = _.without(t, tm);
-		var t2m = Math.max.apply({}, t2);
-		var t3 = _.without(t2, t2m);
 
-		// если если еще есть куда падать в этой колонке
-		if (this.wall[column].length < this.conf.wall_row_count){
-			row = this.wall[column].length;
+		var min = Math.min.apply(Math, len_arr);
+		var max = Math.max.apply(Math, len_arr);
 
-		// места в этой колонке нет, ищем другую
+		// плоско, выбираем любую колонку
+		if (min == max){
+			column = random(0, this.conf.wall_column_count - 1);
+
+		// выбираем любую колонку, кроме самых длинных
 		} else {
-			var find_column = function(){
-//				c = column + 1;
-				// TODO сделать через random
-				for (var i = 0; i < obj.conf.wall_column_count; i++){
-					if (obj.wall[i].length < obj.conf.wall_row_count){
-						column = i;
-						row = obj.wall[i].length;
-						return;
-					} else {
-						if (i == obj.conf.wall_column_count - 1){
-							obj.loss();
-							return ({loss: true});
-						}
-					}
+			var min_indexes = [];
+			for (var i = 0; i < len_arr.length; i++){
+				if (len_arr[i] != max){
+					min_indexes.push(i);
 				}
-			};
+			}
 
-			find_column();
+			column = random_arr(min_indexes);
+		}
+
+		row = obj.wall[column].length;
+
+		// дошли до верха, проигрыш
+		if (row == obj.conf.wall_row_count - 1){
+			obj.loss();
 		}
 
 		return {column: column, row: row}
