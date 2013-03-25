@@ -1,36 +1,9 @@
 //todo колонка для следующего слова выбирается так: исключаем две самые длинные колонки, и рандомно в остальные
 //todo не показывать последнее слово перед проигрышем
 
-/**
- * возвращает случайное число в диапазоне [from, to]
- * @param {Number} from
- * @param {Number} to
- * @return {Number}
- */
-function random(from, to){
-	return Math.floor(Math.random() * (to - from + 1) + from);
-}
 
-/**
- * вовзаращает случайное число в диапазоне from to, исключая указаннные в массиве except
- * @param {number} from
- * @param {number} to
- * @param {Array} except
- * @return {Number}
- */
-function random_except(from, to, except){
-	var r = random(from, to);
-	if (except.indexOf(r) == -1){
-		return r;
-	} else {
-		random_except(from, to, except);
-	}
-}
 
-// todo засунуть это в локальный неймспейс
-function random_arr(arr){
-	return arr[random(0, arr.length - 1)];
-}
+
 
 var Langtris = function(){
 	var obj = this;
@@ -144,6 +117,9 @@ var Langtris = function(){
 	this.load_dicts();
 };
 
+
+
+
 Langtris.prototype = {
 	load_dicts: function(){
 		var obj = this;
@@ -224,14 +200,14 @@ Langtris.prototype = {
 
 		// заполняем уровень из первой части словаря
 		for (var i = 0; i < l1; i++){
-			r = random_except(0, n1, used);
+			r = Langtris.utils.random_except(0, n1, used);
 			// todo починить эту херь c undefined
 			if (r == undefined){
-				r = random_except(0, n1, used);
+				r = Langtris.utils.random_except(0, n1, used);
 				if (r == undefined){
-					r = random_except(0, n1, used);
+					r = Langtris.utils.random_except(0, n1, used);
 					if (r == undefined){
-						r = random_except(0, n1, used);
+						r = Langtris.utils.random_except(0, n1, used);
 						console.log("todo: починить эту херь!!!");
 					}
 				}
@@ -245,14 +221,14 @@ Langtris.prototype = {
 		// заполняем уровень из второй части словаря
 		used = [];
 		for (var i = 0; i < l2; i++){
-			r = random_except(n1, n2, used);
+			r = Langtris.utils.random_except(n1, n2, used);
 			// todo починить эту херь c undefined
 			if (r == undefined){
-				r = random_except(n1, n2, used);
+				r = Langtris.utils.random_except(n1, n2, used);
 				if (r == undefined){
-					r = random_except(n1, n2, used);
+					r = Langtris.utils.random_except(n1, n2, used);
 					if (r == undefined){
-						r = random_except(n1, n2, used);
+						r = Langtris.utils.random_except(n1, n2, used);
 						console.log("todo: починить эту херь!!!");
 					}
 				}
@@ -267,14 +243,14 @@ Langtris.prototype = {
 		used = [];
 		for (var i = 0; i < l3; i++){
 			console.log(3);
-			r = random_except(n2, n3, used);
+			r = Langtris.utils.random_except(n2, n3, used);
 			// todo починить эту херь c undefined
 			if (r == undefined){
-				r = random_except(n2, n3, used);
+				r = Langtris.utils.random_except(n2, n3, used);
 				if (r == undefined){
-					r = random_except(n2, n3, used);
+					r = Langtris.utils.random_except(n2, n3, used);
 					if (r == undefined){
-						r = random_except(n2, n3, used);
+						r = Langtris.utils.random_except(n2, n3, used);
 						console.log("todo: починить эту херь!!!");
 					}
 				}
@@ -317,7 +293,7 @@ Langtris.prototype = {
 
 		/**
 		 * массив колонок, каждая из которых,
-		 * в свою очередь, массив объектов Brick
+		 * в свою очередь, массив объектов Langtris.Brick
 		 * @type {Array}
 		 */
 		this.wall = [];
@@ -339,11 +315,11 @@ Langtris.prototype = {
 			var unique_random = function(n, l){
 				return initial_pairs.indexOf(n) == -1
 					? n
-					: unique_random(random(0, l), l);
+					: unique_random(Langtris.utils.random(0, l), l);
 			};
 
 			for (i = 0; i < obj.conf.initial_rows_fill * obj.conf.wall_column_count / 2; i++){
-				initial_pairs.push(unique_random(random(0, obj.conf.level_length - 1), obj.conf.level_length - 1));
+				initial_pairs.push(unique_random(Langtris.utils.random(0, obj.conf.level_length - 1), obj.conf.level_length - 1));
 			}
 
 			for (var i = 0; i < initial_pairs.length; i++){
@@ -356,7 +332,7 @@ Langtris.prototype = {
 		// половина поля заполняется словами сразу
 		for (i = 0; i < this.conf.initial_rows_fill; i++){
 			for (var j = 0; j < this.conf.wall_column_count; j++){
-				var b = new Brick(this, $.extend({row: i, column: j}, this.choose_word({initial: true}, i, j)));
+				var b = new Langtris.Brick(this, $.extend({row: i, column: j}, this.choose_word({initial: true}, i, j)));
 
 				b.init_show();
 			}
@@ -372,13 +348,13 @@ Langtris.prototype = {
 	 * выбираем слово из словаря
 	 * @return {object}
 	 */
-	choose_word: function(params, ii, jj){
+	choose_word: function(params){
 		var obj = this;
 
 		// флаг состояния, тру если для начального заполнения
 		var initial = (params != undefined && params.initial) ? true : false;
 
-		var lang_id = random(0, 1);
+		var lang_id = Langtris.utils.random(0, 1);
 		var lang = this.level_dicts[lang_id];
 		var word_id;
 		var word;
@@ -391,7 +367,7 @@ Langtris.prototype = {
 					lang = obj.level_dicts[lang_id];
 				}
 
-				var z = random(0, obj.initial_pairs[lang_id].length - 1);
+				var z = Langtris.utils.random(0, obj.initial_pairs[lang_id].length - 1);
 				word_id = obj.initial_pairs[lang_id][z];
 				obj.initial_pairs[lang_id].splice(z, 1);
 
@@ -399,7 +375,7 @@ Langtris.prototype = {
 				//все слова минус использованные
 				var diff = _.difference(obj.used_words[0], obj.used_words[lang_id + 1]);
 				//из них выбираю айдишник нового слова
-				word_id = diff[random(0, diff.length - 1)];
+				word_id = diff[Langtris.utils.random(0, diff.length - 1)];
 			}
 
 			//достаю слово из словаря
@@ -447,7 +423,7 @@ Langtris.prototype = {
 			var word = obj.choose_word();
 			// не показываем первый кирпич-призрак сразу после того, как словари опустели
 			if (word.word != undefined) {
-				var b = new Brick(obj, $.extend({}, obj.calc_destination(), word));
+				var b = new Langtris.Brick(obj, $.extend({}, obj.calc_destination(), word));
 				b.fall();
 			}
 
@@ -540,7 +516,7 @@ Langtris.prototype = {
 
 		// плоско, выбираем любую колонку
 		if (min == max){
-			column = random(0, this.conf.wall_column_count - 1);
+			column = Langtris.utils.random(0, this.conf.wall_column_count - 1);
 
 		// выбираем любую колонку, кроме самых длинных
 		} else {
@@ -551,7 +527,7 @@ Langtris.prototype = {
 				}
 			}
 
-			column = random_arr(min_indexes);
+			column = Langtris.utils.random_arr(min_indexes);
 		}
 
 		row = obj.wall[column].length;
@@ -587,8 +563,7 @@ Langtris.prototype = {
 };
 
 
-var Brick = function(obj, params){
-
+Langtris.Brick = function(obj, params){
 	this.obj = obj;
 	var me = this;
 
@@ -619,7 +594,7 @@ var Brick = function(obj, params){
 	return this;
 };
 
-Brick.prototype = {
+Langtris.Brick.prototype = {
 //	кирпичик сразу появляется на своем месте в начале уровня
 	init_show: function(){
 		this.elem.css({bottom: this.bottom_target + "px"}).addClass("stable");
@@ -699,6 +674,38 @@ Brick.prototype = {
 	}
 };
 
+
+Langtris.utils = {
+	/**
+	 * возвращает случайное число в диапазоне [from, to]
+	 * @param {Number} from
+	 * @param {Number} to
+	 * @return {Number}
+	 */
+	random: function(from, to){
+		return Math.floor(Math.random() * (to - from + 1) + from);
+	},
+
+	/**
+	 * вовзаращает случайное число в диапазоне from to, исключая указаннные в массиве except
+	 * @param {number} from
+	 * @param {number} to
+	 * @param {Array} except
+	 * @return {Number}
+	 */
+	random_except: function(from, to, except){
+		var r = Langtris.utils.random(from, to);
+		if (except.indexOf(r) == -1){
+			return r;
+		} else {
+			Langtris.utils.random_except(from, to, except);
+		}
+	},
+
+	random_arr: function(arr){
+		return arr[Langtris.utils.random(0, arr.length - 1)];
+	}
+};
 
 //var func = ( function(){
 //	function write(){
