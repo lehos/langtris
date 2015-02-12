@@ -4,6 +4,8 @@ import urllib
 import json
 import codecs
 
+# yandex api key
+# trnsl.1.1.20150212T161514Z.ad3a1c5531d395ce.b220c1ce8e34f6fbcd3bcbefb7609a3d62b86d2c
 
 def get_langs():
     """Returns the list of supported languages."""
