@@ -10,7 +10,7 @@ var Langtris = function () {
 
         fall_column_speed: 150,
         fall_speed: 1000,
-        fall_delay: 2000,
+        fall_delay: 5000,
         //fall_speed: 500,
         //fall_delay: 500,
 
