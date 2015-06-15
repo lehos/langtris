@@ -31,7 +31,7 @@ var Langtris = function () {
         max_level: 100,
 
         // количество слов в уровне (в одном словаре)
-        level_length: 100,
+        level_length: 50,
 
         // номер уровня, с которого начинаем (one-based)
         level: 1,
